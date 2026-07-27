@@ -1,4 +1,4 @@
-![Pixel-art chest sorting loose item stacks into the word minisort](docs/assets/minisort-banner.png)
+![Pixel-art chest sorting loose item stacks into the word minisort](docs/assets/minisort-banner.webp)
 
 # minisort
 
