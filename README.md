@@ -1,3 +1,5 @@
+![Pixel-art chest sorting loose item stacks into the word minisort](docs/assets/minisort-banner.png)
+
 # minisort
 
 minisort adds a compact sorting button to normal Minecraft storage screens.
