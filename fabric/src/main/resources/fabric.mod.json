@@ -25,7 +25,11 @@
     "fabricloader": ">=${fabric_loader_version}",
     "fabric-api": "*",
     "amber": "*",
+    "konfig": "*",
     "minecraft": "${fabric_version_range}",
     "java": ">=${java_version}"
+  },
+  "suggests": {
+    "modmenu": ">=${mod_menu_version}"
   }
 }

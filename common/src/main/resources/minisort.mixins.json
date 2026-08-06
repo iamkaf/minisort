@@ -3,6 +3,11 @@
   "minVersion": "0.8",
   "package": "com.iamkaf.minisort.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ItemStackMixin",
+    "LivingEntityMixin",
+    "ServerPlayerGameModeMixin"
+  ],
   "client": [
     "client.AbstractContainerScreenMixin"
   ],

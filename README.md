@@ -2,9 +2,9 @@
 
 # minisort
 
-minisort adds a compact sorting button to normal Minecraft storage screens.
-Sorting is performed by the server, keeps item components intact, and fails
-without changing the container if a slot cannot safely accept the result.
+minisort adds a compact sorting button to normal Minecraft storage screens and
+refills an emptied hand from matching inventory stacks. Both features run on
+the logical server and preserve item components.
 
 ## Supported storage
 
@@ -17,9 +17,23 @@ Special-purpose menus such as crafting tables, anvils, grindstones, merchants,
 enchanting tables, looms, and stonecutters are intentionally left untouched.
 Player-inventory sorting is not part of the initial release.
 
+## Refill behavior
+
+- Exact item-component matching for blocks and consumables.
+- Tool replacement ignores durability damage but preserves every other
+  component.
+- Main-hand and off-hand refill support.
+- Configurable feature categories and inventory search order.
+- No shulker-box, bundle, armor-slot, cursor-stack, or open-container scans.
+
+Generic right-click items are disabled by default. Refill only reacts to
+item-use and durability events; dropping or otherwise clearing a hand does not
+trigger a refill.
+
 ## Requirements
 
-minisort requires [Amber](https://modrinth.com/mod/amber).
+minisort requires [Amber](https://modrinth.com/mod/amber) and
+[Konfig](https://modrinth.com/mod/konfig).
 
 The mod supports Fabric, Forge, and NeoForge on Minecraft 1.21.1, 1.21.11,
 26.1.2, and 26.2.

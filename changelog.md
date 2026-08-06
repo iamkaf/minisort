@@ -9,4 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial Release
+- Added safe, server-authoritative sorting controls to normal storage
+  containers.
+- Added automatic main-hand and off-hand refill for placed blocks, consumed
+  items, and broken tools.
+- Added configurable refill categories and inventory search order.

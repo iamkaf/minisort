@@ -33,3 +33,10 @@ type = "required"
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "konfig"
+type = "required"
+versionRange = "*"
+ordering = "BEFORE"
+side = "BOTH"
