@@ -21,6 +21,12 @@ public final class MiniSortNetwork {
                 SortContainerPayload.DECODER,
                 SortContainerPayload.HANDLER
         );
+        CHANNEL.register(
+                TransferContainerPayload.class,
+                TransferContainerPayload.ENCODER,
+                TransferContainerPayload.DECODER,
+                TransferContainerPayload.HANDLER
+        );
     }
 
     public static void sortContainer(int containerId) {
@@ -29,5 +35,17 @@ public final class MiniSortNetwork {
                 SortContainerPayload.SortTarget.CONTAINER,
                 SortContainerPayload.SortMode.REGISTRY_ID
         ));
+    }
+
+    public static void depositMatching(int containerId) {
+        transfer(containerId, TransferContainerPayload.Action.DEPOSIT_MATCHING);
+    }
+
+    public static void retrieveMatching(int containerId) {
+        transfer(containerId, TransferContainerPayload.Action.RETRIEVE_MATCHING);
+    }
+
+    private static void transfer(int containerId, TransferContainerPayload.Action action) {
+        CHANNEL.sendToServer(new TransferContainerPayload(containerId, action));
     }
 }

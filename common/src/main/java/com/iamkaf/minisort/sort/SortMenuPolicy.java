@@ -10,7 +10,7 @@ public final class SortMenuPolicy {
     private SortMenuPolicy() {
     }
 
-    public static boolean supportsContainerSort(AbstractContainerMenu menu) {
+    public static boolean supportsStorageActions(AbstractContainerMenu menu) {
         Class<?> menuClass = menu.getClass();
         return menuClass == ChestMenu.class
                 || menuClass == ShulkerBoxMenu.class

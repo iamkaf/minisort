@@ -1,11 +1,10 @@
 package com.iamkaf.minisort.sort;
 
 import com.iamkaf.minisort.MiniSort;
+import com.iamkaf.minisort.inventory.StorageMenuSlots;
 import com.iamkaf.minisort.network.SortContainerPayload;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -42,12 +41,16 @@ public final class SortService {
         if (!menu.getCarried().isEmpty()) {
             return SortResult.CARRIED_STACK;
         }
-        if (!SortMenuPolicy.supportsContainerSort(menu)) {
+        if (!SortMenuPolicy.supportsStorageActions(menu)) {
             return SortResult.UNSUPPORTED_MENU;
         }
 
-        List<Slot> slots = sortableSlots(player, menu);
-        if (slots.isEmpty()) {
+        List<Slot> slots = StorageMenuSlots.resolve(player, menu)
+                .map(resolved -> resolved.containerSlots().stream()
+                        .map(StorageMenuSlots.IndexedSlot::slot)
+                        .toList())
+                .orElse(List.of());
+        if (slots.isEmpty() || !allSlotsMutable(player, slots)) {
             return SortResult.NO_SLOTS;
         }
 
@@ -75,26 +78,13 @@ public final class SortService {
         }
     }
 
-    private static List<Slot> sortableSlots(ServerPlayer player, AbstractContainerMenu menu) {
-        Inventory playerInventory = player.getInventory();
-        Container target = null;
-        List<Slot> result = new ArrayList<>();
-
-        for (Slot slot : menu.slots) {
-            if (slot.container == playerInventory) {
-                continue;
-            }
-            if (target == null) {
-                target = slot.container;
-            } else if (target != slot.container) {
-                return List.of();
-            }
+    private static boolean allSlotsMutable(ServerPlayer player, List<Slot> slots) {
+        for (Slot slot : slots) {
             if (!slot.mayPickup(player) || !slot.allowModification(player)) {
-                return List.of();
+                return false;
             }
-            result.add(slot);
         }
-        return result;
+        return true;
     }
 
     private static List<ItemStack> snapshot(List<Slot> slots) {

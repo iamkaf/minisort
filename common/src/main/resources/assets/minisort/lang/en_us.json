@@ -1,3 +1,5 @@
 {
+  "gui.minisort.deposit_matching": "Deposit matching items",
+  "gui.minisort.retrieve_matching": "Retrieve matching items",
   "gui.minisort.sort_container": "Sort container"
 }

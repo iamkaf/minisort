@@ -54,7 +54,7 @@ describe("minisort", () => {
     });
     await screen.menu().slot(1).click({ button: 0, clickType: "PICKUP" });
     await ctx.runtime.wait(250);
-    await screen.widgets().activate("↕");
+    await screen.widgets().activate("Sort container");
     await ctx.runtime.wait(250);
 
     const items = (await ctx.world.container(containerPos).inspect()).items
@@ -68,6 +68,77 @@ describe("minisort", () => {
     await ctx.client.closeMenus();
   });
 
+  test("shows the container controls in a configurable vertical group", async (ctx) => {
+    await prepareStorage(ctx, "minecraft:chest[facing=north]");
+    await ctx.player.openBlock(containerPos);
+    const screen = await ctx.client.waitForScreen("net.minecraft.client.gui.screens.inventory.ContainerScreen", {
+      timeoutMs: 8_000,
+    });
+    const widgets = screen.widgets().all();
+    const sort = widgets.find((widget) => widget.label === "Sort container");
+    const deposit = widgets.find((widget) => widget.label === "Deposit matching items");
+    const retrieve = widgets.find((widget) => widget.label === "Retrieve matching items");
+
+    expect(sort).toBeDefined();
+    expect(deposit).toBeDefined();
+    expect(retrieve).toBeDefined();
+    expect(deposit?.x).toBe(sort?.x);
+    expect(retrieve?.x).toBe(sort?.x);
+    expect((deposit?.y ?? 0) - (sort?.y ?? 0)).toBe(20);
+    expect((retrieve?.y ?? 0) - (deposit?.y ?? 0)).toBe(20);
+    await ctx.client.closeMenus();
+  });
+
+  test("deposits only item types already stored in the container", async (ctx) => {
+    await prepareArea(ctx);
+    await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
+    await ctx.commands.batch([
+      "/item replace block 0 71 0 container.0 with minecraft:stone 30",
+      "/item replace block 0 71 0 container.1 with minecraft:dirt 2",
+      "/item replace entity @s inventory.0 with minecraft:stone 20",
+      "/item replace entity @s inventory.1 with minecraft:apple 5",
+    ], { requireSuccess: true });
+    await ctx.player.openBlock(containerPos);
+    const screen = await ctx.client.waitForScreen("net.minecraft.client.gui.screens.inventory.ContainerScreen", {
+      timeoutMs: 8_000,
+    });
+    await screen.widgets().activate("Deposit matching items");
+    await ctx.runtime.wait(250);
+
+    const items = (await ctx.world.container(containerPos).inspect()).items.map(projectItem);
+    expect(totalCount(items, "minecraft:stone")).toBe(50);
+    expect(totalCount(items, "minecraft:dirt")).toBe(2);
+    expect(totalCount(items, "minecraft:apple")).toBe(0);
+    await ctx.commands.assert("/execute unless items entity @s inventory.* minecraft:stone");
+    await ctx.commands.assert("/execute if items entity @s inventory.* minecraft:apple[count=5]");
+    await ctx.client.closeMenus();
+  });
+
+  test("retrieves only item types already carried by the player", async (ctx) => {
+    await prepareArea(ctx);
+    await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
+    await ctx.commands.batch([
+      "/item replace block 0 71 0 container.0 with minecraft:stone 20",
+      "/item replace block 0 71 0 container.1 with minecraft:apple 5",
+      "/item replace block 0 71 0 container.2 with minecraft:dirt 2",
+      "/item replace entity @s inventory.0 with minecraft:stone 1",
+    ], { requireSuccess: true });
+    await ctx.player.openBlock(containerPos);
+    const screen = await ctx.client.waitForScreen("net.minecraft.client.gui.screens.inventory.ContainerScreen", {
+      timeoutMs: 8_000,
+    });
+    await screen.widgets().activate("Retrieve matching items");
+    await ctx.runtime.wait(250);
+
+    const items = (await ctx.world.container(containerPos).inspect()).items.map(projectItem);
+    expect(totalCount(items, "minecraft:stone")).toBe(0);
+    expect(totalCount(items, "minecraft:apple")).toBe(5);
+    expect(totalCount(items, "minecraft:dirt")).toBe(2);
+    await ctx.commands.assert("/execute if items entity @s inventory.* minecraft:stone[count=21]");
+    await ctx.commands.assert("/execute unless items entity @s inventory.* minecraft:apple");
+    await ctx.client.closeMenus();
+  });
+
   test("does not expose sorting on a special-purpose menu", async (ctx) => {
     await prepareArea(ctx);
     await ctx.commands.run("/setblock 0 71 0 minecraft:anvil");
@@ -76,7 +147,7 @@ describe("minisort", () => {
     const screen = await ctx.client.waitForScreen("net.minecraft.client.gui.screens.inventory.AnvilScreen", {
       timeoutMs: 8_000,
     });
-    await expect(screen.widgets().find("↕").activate()).rejects.toThrow();
+    await expect(screen.widgets().find("Sort container").activate()).rejects.toThrow();
     await ctx.client.closeMenus();
   });
 
@@ -172,7 +243,7 @@ async function openAndActivateSort(ctx: TeaKitTestContext, block: string, screen
   await prepareStorage(ctx, block);
   await ctx.player.openBlock(containerPos);
   const screen = await ctx.client.waitForScreen(screenClass, { timeoutMs: 8_000 });
-  await screen.widgets().activate("↕");
+  await screen.widgets().activate("Sort container");
   await ctx.runtime.wait(250);
 }
 
@@ -212,4 +283,10 @@ async function prepareRefill(ctx: TeaKitTestContext) {
 function projectItem(item: Record<string, unknown>): { id: string; count: number; slot: number } {
   const id = item.id ?? item.item ?? item.itemId ?? item.type;
   return { id: String(id), count: Number(item.count), slot: Number(item.slot) };
+}
+
+function totalCount(items: Array<{ id: string; count: number }>, itemId: string): number {
+  return items
+    .filter((item) => item.id === itemId)
+    .reduce((total, item) => total + item.count, 0);
 }
