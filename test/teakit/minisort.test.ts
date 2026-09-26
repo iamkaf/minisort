@@ -9,6 +9,7 @@ describe.configure({
     Capability.ClientScreens,
     Capability.PlayerInteractions,
     Capability.PlayerInventory,
+    Capability.PlayerPosition,
     Capability.RuntimeTiming,
     Capability.ServerCommands,
     Capability.WorldBlock,
@@ -158,6 +159,7 @@ describe("minisort", () => {
       "/item replace entity @s weapon.mainhand with minecraft:stone 1",
       "/item replace entity @s inventory.0 with minecraft:stone 12",
     ]);
+    await expect(ctx.player.inventory()).toContainItem("minecraft:stone", { slot: 0, count: 1 });
     await ctx.player.useBlock(refillTarget, { face: "up", hand: "main_hand" });
     await ctx.runtime.wait(500);
     await ctx.commands.assert("/execute if items entity @a[limit=1] weapon.mainhand minecraft:stone[count=12]");
@@ -168,6 +170,7 @@ describe("minisort", () => {
       "/item replace entity @s weapon.offhand with minecraft:cobblestone 1",
       "/item replace entity @s inventory.1 with minecraft:cobblestone 7",
     ]);
+    await expect(ctx.player.inventory()).toContainItem("minecraft:cobblestone", { equipmentSlot: "offhand", count: 1 });
     await ctx.player.useBlock(refillTarget, { face: "up", hand: "off_hand" });
     await ctx.runtime.wait(500);
     await ctx.commands.assert("/execute if items entity @a[limit=1] weapon.offhand minecraft:cobblestone[count=7]");
@@ -248,13 +251,16 @@ async function openAndActivateSort(ctx: TeaKitTestContext, block: string, screen
 }
 
 async function prepareArea(ctx: TeaKitTestContext) {
+  await ctx.client.closeMenus();
   await ctx.commands.batch([
     "/gamemode survival @a[limit=1]",
     "/clear @a[limit=1]",
     "/fill -3 70 -3 3 70 3 minecraft:stone",
     "/fill -3 71 -3 3 75 3 minecraft:air",
-    "/tp @a[limit=1] 0 72 -2",
+    "/tp @a[limit=1] 0.5 72 -1.5",
   ]);
+  // Landing requires the client to acknowledge the teleport before block use.
+  await expect(() => ctx.player.position()).toEventuallyEqual({ x: 0.5, y: 71, z: -1.5 }, { timeout: "5s" });
 }
 
 async function prepareStorage(ctx: TeaKitTestContext, block: string) {
@@ -270,14 +276,15 @@ async function prepareStorage(ctx: TeaKitTestContext, block: string) {
 }
 
 async function prepareRefill(ctx: TeaKitTestContext) {
+  await ctx.client.closeMenus();
   await ctx.commands.batch([
     "/gamemode survival @s",
     "/clear @s",
     "/fill -2 79 -2 2 79 2 minecraft:stone",
     "/fill -2 80 -2 2 84 2 minecraft:air",
-    "/tp @s 0.5 80 -0.5 0 45",
+    "/tp @s 0.5 81 -0.5 0 45",
   ]);
-  await ctx.runtime.wait(250);
+  await expect(() => ctx.player.position()).toEventuallyEqual({ x: 0.5, y: 80, z: -0.5 }, { timeout: "5s" });
 }
 
 function projectItem(item: Record<string, unknown>): { id: string; count: number; slot: number } {
