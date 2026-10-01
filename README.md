@@ -1,8 +1,8 @@
-![Pixel-art chest sorting loose item stacks into the word minisort](docs/assets/minisort-banner.webp)
+![Pixel-art chest sorting loose item stacks into the word Minisort](docs/assets/minisort-banner.webp)
 
-# minisort
+# Minisort
 
-minisort adds a compact sorting button to normal Minecraft storage screens and
+Minisort adds a compact sorting button to normal Minecraft storage screens and
 refills an emptied hand from matching inventory stacks. Both features run on
 the logical server and preserve item components.
 
@@ -32,7 +32,7 @@ trigger a refill.
 
 ## Requirements
 
-minisort requires [Amber](https://modrinth.com/mod/amber) and
+Minisort requires [Amber](https://modrinth.com/mod/amber) and
 [Konfig](https://modrinth.com/mod/konfig).
 
 The mod supports Fabric, Forge, and NeoForge on Minecraft 1.21.1, 1.21.11,
@@ -45,6 +45,6 @@ Minecraft version can also be built with `just horizontal-jars`.
 
 Merged jars for 26.1.2 and 26.2 preserve stable common class names. Merged jars
 for 1.21.1 and 1.21.11 are experimental: they can relocate common classes or
-loader metadata, which may break addons and mixins that target minisort
+loader metadata, which may break addons and mixins that target Minisort
 internals. Use loader-specific jars on those versions when compatibility is
 important.

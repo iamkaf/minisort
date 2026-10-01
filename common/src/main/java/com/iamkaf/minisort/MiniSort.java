@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public final class MiniSort {
     public static final String MOD_ID = "minisort";
-    public static final String MOD_NAME = "minisort";
+    public static final String MOD_NAME = "Minisort";
     public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
 
     private MiniSort() {
