@@ -1,5 +1,8 @@
 {
   "gui.minisort.deposit_matching": "Deposit matching items",
   "gui.minisort.retrieve_matching": "Retrieve matching items",
-  "gui.minisort.sort_container": "Sort container"
+  "gui.minisort.sort_container": "Sort container",
+  "konfig.config.minisort.client.sorting.sort_mode": "Sort Mode",
+  "konfig.value.minisort.client.sorting.sort_mode.registry_id": "Registry ID",
+  "konfig.value.minisort.client.sorting.sort_mode.categories": "Categories (Experimental)"
 }

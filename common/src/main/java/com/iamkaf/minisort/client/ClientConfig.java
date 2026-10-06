@@ -7,8 +7,9 @@ import com.iamkaf.konfig.api.v1.ConfigValue;
 import com.iamkaf.konfig.api.v1.Konfig;
 import com.iamkaf.konfig.api.v1.SyncMode;
 import com.iamkaf.minisort.MiniSort;
+import com.iamkaf.minisort.sort.SortMode;
 
-public final class ButtonConfig {
+public final class ClientConfig {
     public static final ConfigHandle HANDLE;
     public static final ConfigValue<Integer> SORT_X;
     public static final ConfigValue<Integer> SORT_Y;
@@ -16,12 +17,13 @@ public final class ButtonConfig {
     public static final ConfigValue<Integer> DEPOSIT_Y;
     public static final ConfigValue<Integer> RETRIEVE_X;
     public static final ConfigValue<Integer> RETRIEVE_Y;
+    public static final ConfigValue<SortMode> SORT_MODE;
 
     static {
         ConfigBuilder builder = Konfig.builder(MiniSort.MOD_ID, "client")
                 .scope(ConfigScope.CLIENT)
                 .syncMode(SyncMode.NONE)
-                .comment("Client-side positions for MiniSort container buttons.");
+                .comment("Client-side settings for Minisort container buttons.");
 
         builder.push("buttons");
         builder.categoryComment("Positions are measured from the top-left corner of the container screen.");
@@ -33,10 +35,17 @@ public final class ButtonConfig {
         RETRIEVE_Y = position(builder, "retrieve_y", 44, "Vertical position of the retrieve matching button.");
         builder.pop();
 
+        builder.push("sorting");
+        SORT_MODE = builder.enumValue("sort_mode", SortMode.REGISTRY_ID)
+                .comment("How the sort button orders a container. CATEGORIES is experimental.")
+                .clientOnly()
+                .build();
+        builder.pop();
+
         HANDLE = builder.build();
     }
 
-    private ButtonConfig() {
+    private ClientConfig() {
     }
 
     public static void init() {

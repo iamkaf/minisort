@@ -1,7 +1,7 @@
 package com.iamkaf.minisort.mixin.client;
 
 import com.iamkaf.minisort.MiniSort;
-import com.iamkaf.minisort.client.ButtonConfig;
+import com.iamkaf.minisort.client.ClientConfig;
 import com.iamkaf.minisort.network.MiniSortNetwork;
 import com.iamkaf.minisort.sort.SortMenuPolicy;
 import net.minecraft.client.gui.components.Button;
@@ -14,20 +14,24 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin extends Screen {
+    @Unique
     private static final WidgetSprites SORT_BUTTON_SPRITES = new WidgetSprites(
             MiniSort.resource("sort_button"),
             MiniSort.resource("sort_button_highlighted")
     );
+    @Unique
     private static final WidgetSprites DEPOSIT_BUTTON_SPRITES = new WidgetSprites(
             MiniSort.resource("deposit_button"),
             MiniSort.resource("deposit_button_highlighted")
     );
+    @Unique
     private static final WidgetSprites RETRIEVE_BUTTON_SPRITES = new WidgetSprites(
             MiniSort.resource("retrieve_button"),
             MiniSort.resource("retrieve_button_highlighted")
@@ -48,33 +52,35 @@ public abstract class AbstractContainerScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void miniSort$addContainerButtons(CallbackInfo callbackInfo) {
-        if (!SortMenuPolicy.supportsStorageActions(menu)) {
+        // Spectators can look inside containers, but the server rejects every action from them.
+        if (!SortMenuPolicy.supportsStorageActions(menu) || minecraft.player == null || minecraft.player.isSpectator()) {
             return;
         }
 
         addRenderableWidget(miniSort$button(
-                ButtonConfig.SORT_X.get(),
-                ButtonConfig.SORT_Y.get(),
+                ClientConfig.SORT_X.get(),
+                ClientConfig.SORT_Y.get(),
                 SORT_BUTTON_SPRITES,
-                ignored -> MiniSortNetwork.sortContainer(menu.containerId),
+                ignored -> MiniSortNetwork.sortContainer(menu.containerId, ClientConfig.SORT_MODE.get()),
                 "gui.minisort.sort_container"
         ));
         addRenderableWidget(miniSort$button(
-                ButtonConfig.DEPOSIT_X.get(),
-                ButtonConfig.DEPOSIT_Y.get(),
+                ClientConfig.DEPOSIT_X.get(),
+                ClientConfig.DEPOSIT_Y.get(),
                 DEPOSIT_BUTTON_SPRITES,
                 ignored -> MiniSortNetwork.depositMatching(menu.containerId),
                 "gui.minisort.deposit_matching"
         ));
         addRenderableWidget(miniSort$button(
-                ButtonConfig.RETRIEVE_X.get(),
-                ButtonConfig.RETRIEVE_Y.get(),
+                ClientConfig.RETRIEVE_X.get(),
+                ClientConfig.RETRIEVE_Y.get(),
                 RETRIEVE_BUTTON_SPRITES,
                 ignored -> MiniSortNetwork.retrieveMatching(menu.containerId),
                 "gui.minisort.retrieve_matching"
         ));
     }
 
+    @Unique
     private ImageButton miniSort$button(
             int x,
             int y,
