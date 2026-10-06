@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Objects;
 
 public final class SortService {
+    private static final int MAIN_INVENTORY_START = 9;
+    private static final int MAIN_INVENTORY_END = 36;
+
     private SortService() {
     }
 
@@ -33,15 +36,18 @@ public final class SortService {
         if (!menu.getCarried().isEmpty()) {
             return SortResult.CARRIED_STACK;
         }
-        if (!SortMenuPolicy.supportsStorageActions(menu)) {
+        if (payload.target() == SortTarget.CONTAINER && !SortMenuPolicy.supportsStorageActions(menu)) {
             return SortResult.UNSUPPORTED_MENU;
         }
 
-        List<Slot> slots = StorageMenuSlots.resolve(player, menu)
-                .map(resolved -> resolved.containerSlots().stream()
-                        .map(StorageMenuSlots.IndexedSlot::slot)
-                        .toList())
-                .orElse(List.of());
+        List<Slot> slots = switch (payload.target()) {
+            case CONTAINER -> StorageMenuSlots.resolve(player, menu)
+                    .map(resolved -> resolved.containerSlots().stream()
+                            .map(StorageMenuSlots.IndexedSlot::slot)
+                            .toList())
+                    .orElse(List.of());
+            case INVENTORY -> mainInventorySlots(player, menu);
+        };
         if (slots.isEmpty() || !allSlotsMutable(player, slots)) {
             return SortResult.NO_SLOTS;
         }
@@ -68,6 +74,19 @@ public final class SortService {
             MiniSort.LOG.warn("Container sort failed and was rolled back", commitFailure);
             return SortResult.ROLLED_BACK;
         }
+    }
+
+    // Every menu shows the player's inventory, so this works from any screen. Hotbar slots 0 to 8 stay put.
+    private static List<Slot> mainInventorySlots(ServerPlayer player, AbstractContainerMenu menu) {
+        List<Slot> slots = new ArrayList<>();
+        for (Slot slot : menu.slots) {
+            if (slot.container == player.getInventory()
+                    && slot.getContainerSlot() >= MAIN_INVENTORY_START
+                    && slot.getContainerSlot() < MAIN_INVENTORY_END) {
+                slots.add(slot);
+            }
+        }
+        return slots;
     }
 
     private static boolean allSlotsMutable(ServerPlayer player, List<Slot> slots) {

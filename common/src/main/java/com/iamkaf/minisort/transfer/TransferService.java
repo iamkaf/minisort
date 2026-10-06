@@ -7,6 +7,7 @@ import com.iamkaf.minisort.network.TransferContainerPayload;
 import com.iamkaf.minisort.sort.SortMenuPolicy;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 public final class TransferService {
+    private static final int HOTBAR_END = 9;
+
     private TransferService() {
     }
 
@@ -42,29 +45,36 @@ public final class TransferService {
         }
 
         StorageMenuSlots slots = resolvedSlots.get();
-        boolean depositMatching = payload.action() == TransferContainerPayload.Action.DEPOSIT_MATCHING;
-        List<IndexedSlot> origins = depositMatching
-                ? slots.playerSlots()
-                : slots.containerSlots();
-        List<IndexedSlot> destinations = depositMatching
-                ? slots.containerSlots()
-                : slots.playerSlots();
-        List<ItemStack> representedStacks = representedStacks(destinations);
+        List<Slot> container = slots.containerSlots().stream().map(IndexedSlot::slot).toList();
+        List<Slot> hotbar = new ArrayList<>();
+        List<Slot> main = new ArrayList<>();
+        for (IndexedSlot indexed : slots.playerSlots()) {
+            (indexed.slot().getContainerSlot() < HOTBAR_END ? hotbar : main).add(indexed.slot());
+        }
+        // Items arriving in the inventory fill the main inventory before the hotbar.
+        List<Slot> inventory = new ArrayList<>(main);
+        inventory.addAll(hotbar);
+
+        TransferContainerPayload.Action action = payload.action();
+        List<Slot> origins = switch (action) {
+            case DEPOSIT_MATCHING -> inventory;
+            case DEPOSIT_ALL -> main;
+            case RETRIEVE_MATCHING, RETRIEVE_ALL -> container;
+        };
+        List<Slot> destinations = action.deposits() ? container : inventory;
+        List<ItemStack> representedStacks = action.matchingOnly() ? representedStacks(destinations) : List.of();
 
         int movedStacks = 0;
         try {
-            for (IndexedSlot origin : origins) {
-                ItemStack stack = origin.slot().getItem();
-                if (stack.isEmpty() || !origin.slot().mayPickup(player) || !origin.slot().allowModification(player)) {
+            for (Slot origin : origins) {
+                ItemStack stack = origin.getItem();
+                if (stack.isEmpty() || !origin.mayPickup(player) || !origin.allowModification(player)) {
                     continue;
                 }
-                if (!isRepresented(stack, representedStacks)) {
+                if (action.matchingOnly() && !isRepresented(stack, representedStacks)) {
                     continue;
                 }
-
-                int beforeCount = stack.getCount();
-                menu.quickMoveStack(player, origin.menuIndex());
-                if (origin.slot().getItem().getCount() < beforeCount) {
+                if (move(player, origin, destinations) > 0) {
                     movedStacks++;
                 }
             }
@@ -77,10 +87,40 @@ public final class TransferService {
         }
     }
 
-    private static List<ItemStack> representedStacks(List<IndexedSlot> slots) {
+    /** Tops up matching stacks first, then fills empty slots, like a shift-click. Returns how many items moved. */
+    private static int move(ServerPlayer player, Slot origin, List<Slot> destinations) {
+        ItemStack moving = origin.getItem().copy();
+        int before = moving.getCount();
+        for (Slot destination : destinations) {
+            if (moving.isEmpty()) {
+                break;
+            }
+            ItemStack existing = destination.getItem();
+            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, moving)
+                    && destination.allowModification(player)) {
+                moving = destination.safeInsert(moving);
+            }
+        }
+        for (Slot destination : destinations) {
+            if (moving.isEmpty()) {
+                break;
+            }
+            if (destination.getItem().isEmpty() && destination.allowModification(player)) {
+                moving = destination.safeInsert(moving);
+            }
+        }
+        int moved = before - moving.getCount();
+        if (moved > 0) {
+            origin.remove(moved);
+            origin.setChanged();
+        }
+        return moved;
+    }
+
+    private static List<ItemStack> representedStacks(List<Slot> slots) {
         List<ItemStack> represented = new ArrayList<>();
-        for (IndexedSlot indexedSlot : slots) {
-            ItemStack stack = indexedSlot.slot().getItem();
+        for (Slot slot : slots) {
+            ItemStack stack = slot.getItem();
             if (!stack.isEmpty() && !isRepresented(stack, represented)) {
                 represented.add(stack.copyWithCount(1));
             }

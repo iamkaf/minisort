@@ -32,13 +32,29 @@ public record TransferContainerPayload(int containerId, Action action)
     };
 
     public enum Action {
-        DEPOSIT_MATCHING(0),
-        RETRIEVE_MATCHING(1);
+        DEPOSIT_MATCHING(0, true, true),
+        RETRIEVE_MATCHING(1, false, true),
+        /** Shift-click on Deposit: the whole main inventory, hotbar excluded. */
+        DEPOSIT_ALL(2, true, false),
+        /** Shift-click on Retrieve: everything that fits. */
+        RETRIEVE_ALL(3, false, false);
 
         private final int networkId;
+        private final boolean deposits;
+        private final boolean matchingOnly;
 
-        Action(int networkId) {
+        Action(int networkId, boolean deposits, boolean matchingOnly) {
             this.networkId = networkId;
+            this.deposits = deposits;
+            this.matchingOnly = matchingOnly;
+        }
+
+        public boolean deposits() {
+            return deposits;
+        }
+
+        public boolean matchingOnly() {
+            return matchingOnly;
         }
 
         private static Action fromNetworkId(int networkId) {

@@ -1,7 +1,16 @@
 {
   "gui.minisort.deposit_matching": "Deposit matching items",
+  "gui.minisort.deposit_matching.description": "Puts away every stack of an item this container already holds.",
+  "gui.minisort.deposit_all": "Deposit everything",
+  "gui.minisort.deposit_all.description": "Puts away your whole main inventory. Your hotbar stays put.",
   "gui.minisort.retrieve_matching": "Retrieve matching items",
+  "gui.minisort.retrieve_matching.description": "Takes every stack of an item you already carry.",
+  "gui.minisort.retrieve_all": "Retrieve everything",
+  "gui.minisort.retrieve_all.description": "Takes everything that fits, filling your main inventory before your hotbar.",
   "gui.minisort.sort_container": "Sort container",
+  "gui.minisort.sort_container.description": "Merges partial stacks and orders the container. Middle-click a slot to sort that side.",
+  "gui.minisort.sort_inventory": "Sort inventory",
+  "gui.minisort.sort_inventory.description": "Orders your main inventory. Your hotbar stays put. Middle-click works too.",
   "konfig.config.minisort.client.sorting.sort_mode": "Sort Mode",
   "konfig.config.minisort.client.buttons.sort_x": "Sort Button X",
   "konfig.config.minisort.client.buttons.sort_y": "Sort Button Y",
@@ -44,5 +53,6 @@
   "minisort.config.inventory.info": "Refill looks in your hotbar and main inventory. It never takes from armor slots, shulker boxes, bundles, or open containers.",
   "minisort.config.search_hotbar_first": "Search Hotbar First",
   "minisort.config.search_hotbar_first.info": "Take the replacement from another hotbar slot before the main inventory. Turn off to keep your hotbar layout intact.",
-  "minisort.config.hint": "Hover a setting to see what it changes."
+  "minisort.config.hint": "Hover a setting to see what it changes.",
+  "gui.minisort.shift_for_all": "Hold Shift for everything"
 }

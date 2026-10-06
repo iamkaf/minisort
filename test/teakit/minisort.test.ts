@@ -139,6 +139,115 @@ describe("Minisort", () => {
     await ctx.client.closeMenus();
   });
 
+  test("sorts the main inventory and leaves the hotbar alone", async (ctx) => {
+    await prepareArea(ctx);
+    await ctx.commands.batch([
+      "/item replace entity @s hotbar.0 with minecraft:stone 5",
+      "/item replace entity @s hotbar.4 with minecraft:apple 2",
+      "/item replace entity @s inventory.0 with minecraft:stone 20",
+      "/item replace entity @s inventory.5 with minecraft:apple 3",
+      "/item replace entity @s inventory.9 with minecraft:stone 50",
+      "/item replace entity @s inventory.20 with minecraft:dirt 2",
+    ], { requireSuccess: true });
+    await ctx.client.openInventory();
+    const screen = await ctx.client.waitForScreen("net.minecraft.client.gui.screens.inventory.InventoryScreen", { timeoutMs: 8_000 });
+    await screen.widgets().activate("Sort inventory");
+
+    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:apple[count=3]");
+    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:dirt[count=2]");
+    await ctx.commands.assert("/execute if items entity @s inventory.2 minecraft:stone[count=64]");
+    await ctx.commands.assert("/execute if items entity @s inventory.3 minecraft:stone[count=6]");
+    await ctx.commands.assert("/execute unless items entity @s inventory.4 *");
+    await ctx.commands.assert("/execute if items entity @s hotbar.0 minecraft:stone[count=5]");
+    await ctx.commands.assert("/execute if items entity @s hotbar.4 minecraft:apple[count=2]");
+    await ctx.client.closeMenus();
+  });
+
+  test("middle-click sorts the side of the screen under the cursor", async (ctx) => {
+    await prepareStorage(ctx, "minecraft:chest[facing=north]");
+    await ctx.commands.batch([
+      "/item replace entity @s inventory.0 with minecraft:dirt 1",
+      "/item replace entity @s inventory.7 with minecraft:apple 4",
+      "/item replace entity @s inventory.8 with minecraft:dirt 5",
+    ], { requireSuccess: true });
+    const screen = await openContainer(ctx, chestScreen);
+
+    await middleClickSlot(ctx, screen, (slot) => slot.containerSlot === 9 && slot.slot >= 27);
+    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:apple[count=4]");
+    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:dirt[count=6]");
+    expect(await containerItems(ctx)).toEqual([
+      { id: "minecraft:stone", count: 20, slot: 0 },
+      { id: "minecraft:apple", count: 3, slot: 1 },
+      { id: "minecraft:stone", count: 50, slot: 2 },
+      { id: "minecraft:dirt", count: 2, slot: 3 },
+    ]);
+
+    await middleClickSlot(ctx, screen, (slot) => slot.slot === 0);
+    await expect(() => containerItems(ctx)).toEventuallyEqual([
+      { id: "minecraft:apple", count: 3, slot: 0 },
+      { id: "minecraft:dirt", count: 2, slot: 1 },
+      { id: "minecraft:stone", count: 64, slot: 2 },
+      { id: "minecraft:stone", count: 6, slot: 3 },
+    ], { timeout: "5s" });
+    await ctx.client.closeMenus();
+  });
+
+  test("leaves middle-click to vanilla in creative mode", async (ctx) => {
+    await prepareStorage(ctx, "minecraft:chest[facing=north]");
+    await ctx.commands.run("/gamemode creative @s");
+    const screen = await openContainer(ctx, chestScreen);
+    await middleClickSlot(ctx, screen, (slot) => slot.slot === 5);
+    // Nothing observable changes when the click is ignored, so give the server a moment to act on a request.
+    await ctx.runtime.wait(500);
+    expect(await containerItems(ctx)).toEqual([
+      { id: "minecraft:stone", count: 20, slot: 0 },
+      { id: "minecraft:apple", count: 3, slot: 1 },
+      { id: "minecraft:stone", count: 50, slot: 2 },
+      { id: "minecraft:dirt", count: 2, slot: 3 },
+    ]);
+    await ctx.client.closeMenus();
+  });
+
+  test("deposits the whole main inventory but not the hotbar with Shift", async (ctx) => {
+    await prepareArea(ctx);
+    await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
+    await ctx.commands.batch([
+      "/item replace block 0 71 0 container.0 with minecraft:stone 30",
+      "/item replace entity @s hotbar.0 with minecraft:torch 10",
+      "/item replace entity @s inventory.0 with minecraft:apple 5",
+      "/item replace entity @s inventory.13 with minecraft:dirt 7",
+    ], { requireSuccess: true });
+    const screen = await openContainer(ctx, chestScreen);
+    await screen.widgets().find("Deposit matching items").click({ button: 0, modifiers: shiftModifier });
+    await expect(async () => totalCount(await containerItems(ctx), "minecraft:dirt")).toEventuallyEqual(7, { timeout: "5s" });
+
+    const items = await containerItems(ctx);
+    expect(totalCount(items, "minecraft:apple")).toBe(5);
+    expect(totalCount(items, "minecraft:stone")).toBe(30);
+    expect(totalCount(items, "minecraft:torch")).toBe(0);
+    await ctx.commands.assert("/execute if items entity @s hotbar.0 minecraft:torch[count=10]");
+    await ctx.commands.assert("/execute unless items entity @s inventory.* *");
+    await ctx.client.closeMenus();
+  });
+
+  test("retrieves everything into the main inventory first with Shift", async (ctx) => {
+    await prepareArea(ctx);
+    await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
+    await ctx.commands.batch([
+      "/item replace block 0 71 0 container.0 with minecraft:apple 5",
+      "/item replace block 0 71 0 container.4 with minecraft:dirt 7",
+      "/item replace entity @s hotbar.0 with minecraft:torch 10",
+    ], { requireSuccess: true });
+    const screen = await openContainer(ctx, chestScreen);
+    await screen.widgets().find("Retrieve matching items").click({ button: 0, modifiers: shiftModifier });
+    await expect(async () => (await containerItems(ctx)).length).toEventuallyEqual(0, { timeout: "5s" });
+
+    await ctx.commands.assert("/execute if items entity @s inventory.0 minecraft:apple[count=5]");
+    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:dirt[count=7]");
+    await ctx.commands.assert("/execute unless items entity @s hotbar.1 *");
+    await ctx.client.closeMenus();
+  });
+
   test("refills placed blocks in both hands without creating items", async (ctx) => {
     await prepareRefill(ctx);
     await ctx.commands.batch([
@@ -253,6 +362,25 @@ async function openContainer(ctx: TeaKitTestContext, screenClass: string): Promi
   await ctx.player.openBlock(containerPos);
   return ctx.client.waitForScreen(screenClass, { timeoutMs: 8_000 });
 }
+
+// Buttons sit at fixed offsets from the screen corner, so the Sort button locates the container screen.
+async function middleClickSlot(
+  ctx: TeaKitTestContext,
+  screen: ClientScreen,
+  pick: (slot: { slot: number; containerSlot?: number }) => boolean,
+) {
+  const sort = screen.widgets().all().find((widget) => widget.label === "Sort container");
+  const slot = screen.menu().slots().find(pick);
+  if (sort == null || slot?.x == null || slot.y == null) {
+    throw new Error("Could not locate the slot to middle-click");
+  }
+  const left = sort.x - 178;
+  const top = sort.y - 4;
+  await ctx.client.click({ x: left + slot.x + 8, y: top + slot.y + 8, button: 2 });
+}
+
+// GLFW's Shift modifier bit, as a shift-click sends it.
+const shiftModifier = 1;
 
 async function containerItems(ctx: TeaKitTestContext): Promise<Item[]> {
   return (await ctx.world.container(containerPos).inspect()).items
