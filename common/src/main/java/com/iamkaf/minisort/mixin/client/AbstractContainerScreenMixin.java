@@ -61,7 +61,7 @@ public abstract class AbstractContainerScreenMixin extends Screen {
                 ClientConfig.SORT_X.get(),
                 ClientConfig.SORT_Y.get(),
                 SORT_BUTTON_SPRITES,
-                ignored -> MiniSortNetwork.sortContainer(menu.containerId, ClientConfig.SORT_MODE.get()),
+                ignored -> MiniSortNetwork.sortContainer(menu.containerId, ClientConfig.sortMode()),
                 "gui.minisort.sort_container"
         ));
         addRenderableWidget(miniSort$button(
