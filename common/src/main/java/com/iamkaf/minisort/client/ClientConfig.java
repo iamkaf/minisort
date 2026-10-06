@@ -25,7 +25,7 @@ public final class ClientConfig {
                 .scope(ConfigScope.CLIENT)
                 .syncMode(SyncMode.NONE)
                 .comment("Client-side settings for Minisort container buttons.")
-                .info(info -> ConfigPanels.picture(info, "client", "buttons"));
+                .info(info -> ConfigPanels.screen(info, "client", "showcase"));
 
         builder.push("sorting");
         builder.categoryInfo(info -> ConfigPanels.picture(info, "sorting", "sort_categories"));
@@ -70,7 +70,7 @@ public final class ClientConfig {
     private static ConfigValue<Integer> position(ConfigBuilder builder, String key, int defaultValue, String comment) {
         return builder.intRange(key, defaultValue, -4096, 4096)
                 .comment(comment)
-                .info(info -> ConfigPanels.text(info, "buttons.position"))
+                .info(info -> ConfigPanels.picture(info, "buttons.position", "button_position"))
                 .clientOnly()
                 .build();
     }

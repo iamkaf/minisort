@@ -2,7 +2,6 @@
   "gui.minisort.deposit_matching": "Deposit matching items",
   "gui.minisort.retrieve_matching": "Retrieve matching items",
   "gui.minisort.sort_container": "Sort container",
-
   "konfig.config.minisort.client.sorting.sort_mode": "Sort Mode",
   "konfig.config.minisort.client.buttons.sort_x": "Sort Button X",
   "konfig.config.minisort.client.buttons.sort_y": "Sort Button Y",
@@ -15,7 +14,6 @@
   "konfig.config.minisort.common.refill.refill_consumables": "Food and Drinks",
   "konfig.config.minisort.common.refill.refill_generic_use_items": "Other Right-Click Items",
   "konfig.config.minisort.common.inventory.search_hotbar_first": "Search Hotbar First",
-
   "minisort.config.client": "Minisort",
   "minisort.config.client.info": "Three buttons sit beside chests, barrels, shulker boxes, dispensers, droppers, and hoppers. Sort tidies the container, Deposit moves in what it already holds, and Retrieve takes out what you already carry.",
   "minisort.config.sorting": "Sorting",
@@ -30,7 +28,6 @@
   "minisort.config.buttons.info": "Move the buttons if another mod draws something in the same spot. Positions count from the container screen's top-left corner.",
   "minisort.config.buttons.position": "Button Position",
   "minisort.config.buttons.position.info": "Counted in screen pixels from the container screen's top-left corner. The default column sits just right of a chest.",
-
   "minisort.config.common": "Hand Refill",
   "minisort.config.common.info": "When the stack in your hand runs out, the next matching stack from your inventory moves in. These settings come from the server.",
   "minisort.config.refill": "What Refills",
@@ -46,5 +43,6 @@
   "minisort.config.inventory": "Inventory Search",
   "minisort.config.inventory.info": "Refill looks in your hotbar and main inventory. It never takes from armor slots, shulker boxes, bundles, or open containers.",
   "minisort.config.search_hotbar_first": "Search Hotbar First",
-  "minisort.config.search_hotbar_first.info": "Take the replacement from another hotbar slot before the main inventory. Turn off to keep your hotbar layout intact."
+  "minisort.config.search_hotbar_first.info": "Take the replacement from another hotbar slot before the main inventory. Turn off to keep your hotbar layout intact.",
+  "minisort.config.hint": "Hover a setting to see what it changes."
 }

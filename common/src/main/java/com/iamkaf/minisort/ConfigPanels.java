@@ -22,8 +22,10 @@ public final class ConfigPanels {
                 .inlineTextKey(key(name + ".info"));
     }
 
-    public static void text(InfoPanelBuilder info, String name) {
-        info.headerKey(key(name)).inlineTextKey(key(name + ".info"));
+    /** The first panel a screen shows: a picture, what the screen covers, and how to learn more. */
+    public static void screen(InfoPanelBuilder info, String name, String picture) {
+        picture(info, name, picture);
+        info.inlineTextKey(key("hint"));
     }
 
     public static String key(String path) {
