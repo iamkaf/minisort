@@ -36,8 +36,8 @@ public final class RefillConfig {
                 .comment("Refill food and other items after a held-use action consumes the stack.")
                 .sync(true)
                 .build();
-        REFILL_GENERIC_USE_ITEMS = builder.bool("refill_generic_use_items", false)
-                .comment("Refill other right-click items. Disabled by default for broad mod compatibility.")
+        REFILL_GENERIC_USE_ITEMS = builder.bool("refill_generic_use_items", true)
+                .comment("Refill other right-click items, such as ender pearls, bone meal, and spawn eggs.")
                 .sync(true)
                 .build();
         builder.pop();
