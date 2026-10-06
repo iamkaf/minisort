@@ -15,18 +15,13 @@ import java.util.List;
 import java.util.Objects;
 
 public final class SortService {
-    private static final Comparator<PooledStack> STACK_ORDER = Comparator
-            .comparing((PooledStack pool) -> itemId(pool.prototype))
-            .thenComparing(pool -> componentKey(pool.prototype));
+    private static final int MAIN_INVENTORY_START = 9;
+    private static final int MAIN_INVENTORY_END = 36;
 
     private SortService() {
     }
 
     public static SortResult sort(ServerPlayer player, SortContainerPayload payload) {
-        if (payload.target() != SortContainerPayload.SortTarget.CONTAINER
-                || payload.mode() != SortContainerPayload.SortMode.REGISTRY_ID) {
-            return SortResult.UNSUPPORTED_REQUEST;
-        }
         if (player.isSpectator()) {
             return SortResult.SPECTATOR;
         }
@@ -41,21 +36,24 @@ public final class SortService {
         if (!menu.getCarried().isEmpty()) {
             return SortResult.CARRIED_STACK;
         }
-        if (!SortMenuPolicy.supportsStorageActions(menu)) {
+        if (payload.target() == SortTarget.CONTAINER && !SortMenuPolicy.supportsStorageActions(menu)) {
             return SortResult.UNSUPPORTED_MENU;
         }
 
-        List<Slot> slots = StorageMenuSlots.resolve(player, menu)
-                .map(resolved -> resolved.containerSlots().stream()
-                        .map(StorageMenuSlots.IndexedSlot::slot)
-                        .toList())
-                .orElse(List.of());
+        List<Slot> slots = switch (payload.target()) {
+            case CONTAINER -> StorageMenuSlots.resolve(player, menu)
+                    .map(resolved -> resolved.containerSlots().stream()
+                            .map(StorageMenuSlots.IndexedSlot::slot)
+                            .toList())
+                    .orElse(List.of());
+            case INVENTORY -> mainInventorySlots(player, menu);
+        };
         if (slots.isEmpty() || !allSlotsMutable(player, slots)) {
             return SortResult.NO_SLOTS;
         }
 
         List<ItemStack> snapshot = snapshot(slots);
-        List<ItemStack> plan = plan(slots, snapshot);
+        List<ItemStack> plan = plan(slots, snapshot, order(payload.mode(), player));
         if (plan == null) {
             return SortResult.SLOT_CONSTRAINT;
         }
@@ -78,6 +76,19 @@ public final class SortService {
         }
     }
 
+    // Every menu shows the player's inventory, so this works from any screen. Hotbar slots 0 to 8 stay put.
+    private static List<Slot> mainInventorySlots(ServerPlayer player, AbstractContainerMenu menu) {
+        List<Slot> slots = new ArrayList<>();
+        for (Slot slot : menu.slots) {
+            if (slot.container == player.getInventory()
+                    && slot.getContainerSlot() >= MAIN_INVENTORY_START
+                    && slot.getContainerSlot() < MAIN_INVENTORY_END) {
+                slots.add(slot);
+            }
+        }
+        return slots;
+    }
+
     private static boolean allSlotsMutable(ServerPlayer player, List<Slot> slots) {
         for (Slot slot : slots) {
             if (!slot.mayPickup(player) || !slot.allowModification(player)) {
@@ -95,9 +106,19 @@ public final class SortService {
         return snapshot;
     }
 
-    private static List<ItemStack> plan(List<Slot> slots, List<ItemStack> snapshot) {
+    // Stacks that compare equal keep their first-seen order, so sorting twice changes nothing.
+    private static Comparator<PooledStack> order(SortMode mode, ServerPlayer player) {
+        return switch (mode) {
+            case REGISTRY_ID -> Comparator.comparing(pool -> itemId(pool.prototype));
+            case CATEGORIES -> Comparator.comparing(
+                    pool -> CategoryKey.of(ItemCategory.of(pool.prototype, player), itemId(pool.prototype))
+            );
+        };
+    }
+
+    private static List<ItemStack> plan(List<Slot> slots, List<ItemStack> snapshot, Comparator<PooledStack> order) {
         List<PooledStack> pools = compact(snapshot);
-        pools.sort(STACK_ORDER);
+        pools.sort(order);
 
         List<ItemStack> plan = new ArrayList<>(slots.size());
         for (int i = 0; i < slots.size(); i++) {
@@ -191,18 +212,6 @@ public final class SortService {
         return Objects.toString(BuiltInRegistries.ITEM.getKey(stack.getItem()), "");
     }
 
-    private static String componentKey(ItemStack stack) {
-        return stack.getComponents().stream()
-                .sorted(Comparator.comparing(component -> componentTypeId(component.type())))
-                .map(component -> componentTypeId(component.type()) + "=" + Objects.toString(component.value()))
-                .reduce((left, right) -> left + "\u0000" + right)
-                .orElse("");
-    }
-
-    private static String componentTypeId(net.minecraft.core.component.DataComponentType<?> type) {
-        return Objects.toString(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type), "");
-    }
-
     private static final class PooledStack {
         private final ItemStack prototype;
         private long count;
@@ -215,7 +224,6 @@ public final class SortService {
 
     public enum SortResult {
         SORTED,
-        UNSUPPORTED_REQUEST,
         SPECTATOR,
         STALE_MENU,
         INVALID_MENU,

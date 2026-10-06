@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -42,7 +43,11 @@ public abstract class ServerPlayerGameModeMixin {
             ItemStack stack,
             InteractionHand hand,
             CallbackInfoReturnable<InteractionResult> callback) {
-        RefillQueue.scheduleIfEmpty(player, hand, minisort$pop(MINISORT_USE_CAPTURES));
+        ItemStack template = minisort$pop(MINISORT_USE_CAPTURES);
+        // Right-clicking armor equips it and empties the hand. That is not a used-up stack.
+        if (player.getEquipmentSlotForItem(template).getType() == EquipmentSlot.Type.HAND) {
+            RefillQueue.scheduleIfEmpty(player, hand, template);
+        }
     }
 
     @Inject(method = "useItemOn", at = @At("HEAD"))

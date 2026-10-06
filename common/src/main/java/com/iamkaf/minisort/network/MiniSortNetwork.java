@@ -2,6 +2,8 @@ package com.iamkaf.minisort.network;
 
 import com.iamkaf.amber.api.networking.v1.NetworkChannel;
 import com.iamkaf.minisort.MiniSort;
+import com.iamkaf.minisort.sort.SortMode;
+import com.iamkaf.minisort.sort.SortTarget;
 
 public final class MiniSortNetwork {
     private static final NetworkChannel CHANNEL = NetworkChannel.create(MiniSort.resource("main"));
@@ -29,23 +31,11 @@ public final class MiniSortNetwork {
         );
     }
 
-    public static void sortContainer(int containerId) {
-        CHANNEL.sendToServer(new SortContainerPayload(
-                containerId,
-                SortContainerPayload.SortTarget.CONTAINER,
-                SortContainerPayload.SortMode.REGISTRY_ID
-        ));
+    public static void sort(int containerId, SortTarget target, SortMode mode) {
+        CHANNEL.sendToServer(new SortContainerPayload(containerId, target, mode));
     }
 
-    public static void depositMatching(int containerId) {
-        transfer(containerId, TransferContainerPayload.Action.DEPOSIT_MATCHING);
-    }
-
-    public static void retrieveMatching(int containerId) {
-        transfer(containerId, TransferContainerPayload.Action.RETRIEVE_MATCHING);
-    }
-
-    private static void transfer(int containerId, TransferContainerPayload.Action action) {
+    public static void transfer(int containerId, TransferContainerPayload.Action action) {
         CHANNEL.sendToServer(new TransferContainerPayload(containerId, action));
     }
 }

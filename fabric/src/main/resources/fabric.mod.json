@@ -16,6 +16,9 @@
   "entrypoints": {
     "main": [
       "com.iamkaf.minisort.fabric.FabricEntrypoint"
+    ],
+    "client": [
+      "com.iamkaf.minisort.fabric.FabricClientEntrypoint"
     ]
   },
   "mixins": [
