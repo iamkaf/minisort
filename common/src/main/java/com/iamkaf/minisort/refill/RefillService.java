@@ -15,7 +15,9 @@ public final class RefillService {
     }
 
     public static boolean refillIfStillEmpty(ServerPlayer player, InteractionHand hand, ItemStack template) {
-        if (template.isEmpty() || player.hasInfiniteMaterials() || !player.getItemInHand(hand).isEmpty()) {
+        // A player can disconnect or respawn between the use and the end of the tick.
+        if (player.isRemoved() || template.isEmpty() || player.hasInfiniteMaterials()
+                || !player.getItemInHand(hand).isEmpty()) {
             return false;
         }
 
