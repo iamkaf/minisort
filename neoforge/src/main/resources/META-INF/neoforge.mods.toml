@@ -40,3 +40,12 @@ type = "required"
 versionRange = "[${konfig_version},)"
 ordering = "AFTER"
 side = "BOTH"
+
+# The Sort binding needs the binding API, which arrived in Controlify 3.
+[[dependencies.${mod_id}]]
+modId = "controlify"
+type = "incompatible"
+versionRange = "[,3.0.0)"
+reason = "Minisort's controller binding needs Controlify 3.0.0 or newer."
+ordering = "NONE"
+side = "CLIENT"

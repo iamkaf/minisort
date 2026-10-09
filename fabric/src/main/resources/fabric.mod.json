@@ -19,6 +19,15 @@
     ],
     "client": [
       "com.iamkaf.minisort.fabric.FabricClientEntrypoint"
+    ],
+    "jei_mod_plugin": [
+      "com.iamkaf.minisort.compat.jei.MiniSortJeiPlugin"
+    ],
+    "rei_client": [
+      "com.iamkaf.minisort.compat.rei.MiniSortReiPlugin"
+    ],
+    "controlify": [
+      "com.iamkaf.minisort.compat.controlify.MiniSortControlify"
     ]
   },
   "mixins": [
@@ -34,5 +43,8 @@
   },
   "suggests": {
     "modmenu": ">=${mod_menu_version}"
+  },
+  "breaks": {
+    "controlify": "<3.0.0"
   }
 }
