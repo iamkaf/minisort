@@ -252,7 +252,9 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Min
     @Unique
     private boolean miniSort$canSort() {
         LocalPlayer player = minecraft.player;
-        return player != null && !player.isSpectator() && menu.getCarried().isEmpty() && MiniSortNetwork.serverSupported();
+        // A menu the player turned Minisort off for gets no sorting at all, not even of the inventory side.
+        return player != null && !player.isSpectator() && menu.getCarried().isEmpty() && MiniSortNetwork.serverSupported()
+                && !ClientConfig.hidden(menu);
     }
 
     @Unique

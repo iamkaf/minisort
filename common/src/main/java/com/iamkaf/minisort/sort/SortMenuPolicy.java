@@ -4,7 +4,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.DispenserMenu;
+import net.minecraft.world.inventory.FurnaceResultSlot;
 import net.minecraft.world.inventory.HopperMenu;
+import net.minecraft.world.inventory.MerchantResultSlot;
+import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.inventory.ShulkerBoxSlot;
 import net.minecraft.world.inventory.Slot;
@@ -41,25 +44,28 @@ public final class SortMenuPolicy {
     }
 
     /**
-     * A modded menu is storage when every slot outside the player's inventory is a plain storage slot. Machines,
-     * crafting grids, and virtual network slots use slot subclasses, so they stay out.
+     * A modded menu is storage when it has enough plain storage slots beside the player's inventory. Special slots,
+     * like Echo Chest's bottle slot or an upgrade slot, may sit beside them; Minisort leaves those alone. A crafting,
+     * smelting, or trading result slot marks a machine, and virtual network slots aren't plain, so those stay out.
      */
     private static boolean isModdedStorage(AbstractContainerMenu menu) {
         int storage = 0;
         boolean playerInventory = false;
         for (Slot slot : menu.slots) {
+            if (slot instanceof ResultSlot || slot instanceof FurnaceResultSlot || slot instanceof MerchantResultSlot) {
+                return false;
+            }
             if (slot.container instanceof Inventory) {
                 playerInventory = true;
-            } else if (isPlainStorageSlot(slot)) {
+            } else if (isStorageSlot(slot)) {
                 storage++;
-            } else {
-                return false;
             }
         }
         return playerInventory && storage >= MIN_MODDED_STORAGE_SLOTS;
     }
 
-    private static boolean isPlainStorageSlot(Slot slot) {
+    /** A slot that only holds items, with no rules of its own. The only container slots Minisort moves items in. */
+    public static boolean isStorageSlot(Slot slot) {
         Class<?> slotClass = slot.getClass();
         return slotClass == Slot.class || slotClass == ShulkerBoxSlot.class
                 || LOADER_STORAGE_SLOTS.contains(slotClass.getName());

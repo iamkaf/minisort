@@ -1,5 +1,6 @@
 package com.iamkaf.minisort.inventory;
 
+import com.iamkaf.minisort.sort.SortMenuPolicy;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,6 +27,10 @@ public record StorageMenuSlots(List<IndexedSlot> containerSlots, List<IndexedSlo
             Slot slot = menu.slots.get(menuIndex);
             if (slot.container == playerInventory) {
                 playerSlots.add(new IndexedSlot(menuIndex, slot));
+                continue;
+            }
+            // Special slots, such as a modded chest's fuel or upgrade slot, keep their items.
+            if (!SortMenuPolicy.isStorageSlot(slot)) {
                 continue;
             }
 
