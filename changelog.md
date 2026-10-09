@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added automatic main-hand and off-hand refill for placed blocks, used-up
   items, and broken tools.
 - Added configurable refill categories and inventory search order.
+- Added support for joining servers without Minisort.
 
 ## Types of changes
 

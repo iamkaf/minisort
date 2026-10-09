@@ -96,8 +96,9 @@ public abstract class AbstractContainerScreenMixin extends Screen {
     private void miniSort$addButtons(CallbackInfo callbackInfo) {
         miniSort$buttons.clear();
         // Spectators can look inside containers, but the server rejects every action from them.
+        // A server without Minisort cannot act on them either.
         LocalPlayer player = minecraft.player;
-        if (player == null || player.isSpectator()) {
+        if (player == null || player.isSpectator() || !MiniSortNetwork.serverSupported()) {
             return;
         }
 
@@ -162,7 +163,7 @@ public abstract class AbstractContainerScreenMixin extends Screen {
     private boolean miniSort$sortSection(@Nullable Slot slot) {
         LocalPlayer player = minecraft.player;
         if (player == null || player.isSpectator() || player.hasInfiniteMaterials()
-                || slot == null || !menu.getCarried().isEmpty()) {
+                || slot == null || !menu.getCarried().isEmpty() || !MiniSortNetwork.serverSupported()) {
             return false;
         }
         if (slot.container == player.getInventory()) {

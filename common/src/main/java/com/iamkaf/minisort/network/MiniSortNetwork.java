@@ -1,12 +1,14 @@
 package com.iamkaf.minisort.network;
 
 import com.iamkaf.amber.api.networking.v1.NetworkChannel;
+import com.iamkaf.amber.api.networking.v1.PeerAvailability;
 import com.iamkaf.minisort.MiniSort;
 import com.iamkaf.minisort.sort.SortMode;
 import com.iamkaf.minisort.sort.SortTarget;
 
 public final class MiniSortNetwork {
-    private static final NetworkChannel CHANNEL = NetworkChannel.create(MiniSort.resource("main"));
+    // Optional, so players with Minisort can still join servers without it.
+    private static final NetworkChannel CHANNEL = NetworkChannel.createOptional(MiniSort.resource("main_v1"));
     private static boolean initialized;
 
     private MiniSortNetwork() {
@@ -29,6 +31,11 @@ public final class MiniSortNetwork {
                 TransferContainerPayload.DECODER,
                 TransferContainerPayload.HANDLER
         );
+    }
+
+    /** Whether the connected server has Minisort to act on the buttons. Client side only. */
+    public static boolean serverSupported() {
+        return CHANNEL.serverAvailability() == PeerAvailability.SUPPORTED;
     }
 
     public static void sort(int containerId, SortTarget target, SortMode mode) {

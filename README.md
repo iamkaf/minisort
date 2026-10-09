@@ -67,17 +67,16 @@ Use the mod list to reach Minisort's configuration screen. Fabric users need [Mo
 
 ## Installation
 
-Install Minisort alongside [Amber](https://modrinth.com/mod/amber) and [Konfig](https://modrinth.com/mod/konfig). Fabric installations require [Fabric API](https://modrinth.com/mod/fabric-api) too. Both the client and server need the mod, since the server handles item sorting, transfers, and refill.
+Install Minisort alongside [Amber](https://modrinth.com/mod/amber) and [Konfig](https://modrinth.com/mod/konfig). Fabric installations require [Fabric API](https://modrinth.com/mod/fabric-api) too. Both the client and server need the mod, since the server handles item sorting, transfers, and refill. You can still join servers without Minisort; the buttons stay hidden there.
 
 Files are available for Fabric, Forge, and NeoForge, covering Minecraft 1.21.11, 26.1.2, 26.2, and 26.3. Support for earlier Minecraft releases is planned.
 
 ## Artifacts
 
-Published files are separate jars for each loader. To build a jar combining
-loaders for each Minecraft version, run `just horizontal-jars`.
+Each Minecraft version has one file on Modrinth and CurseForge that runs on
+Fabric, Forge, and NeoForge. Build it with `just horizontal-jars`. Separate
+jars for each loader are on [Kaf Maven](https://maven.kaf.sh).
 
-The combined builds retain common class names on 26.1.2, 26.2, and 26.3.
-On 1.21.11, this format is experimental and may relocate common classes or
-loader metadata. Addons and mixins referencing Minisort's internals can
-break as a result; choose a separate loader jar for compatibility on that
-version.
+The combined jar keeps Minisort's class names on 26.1.2, 26.2, and 26.3. On
+1.21.11 it renames shared classes for each loader, so addons and mixins that
+reference Minisort's internals should build against a separate loader jar.
