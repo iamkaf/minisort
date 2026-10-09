@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added middle-click sorting outside creative mode.
 - Added a sort key, R by default.
 - Added a creative inventory sort order, used by default.
-- Added a sort animation.
+- Added an animation that glides sorted and moved items to their slots.
 - Added a choice of button styles.
 - Added JEI and REI support that keeps their item lists clear of the buttons.
 - Added a Controlify binding for sorting.
