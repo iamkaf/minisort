@@ -10,7 +10,7 @@
   ],
   "client": [
     "client.AbstractContainerScreenMixin",
-    "client.SortGlideScreenMixin"
+    "client.ItemGlideScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

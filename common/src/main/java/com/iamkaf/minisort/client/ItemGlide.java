@@ -13,28 +13,29 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Draws the items of a sort Minisort asked for gliding from their old slots to their new ones. It arms when the
- * player sorts, and plays only if the next change to those slots keeps every item's total: anything else, like a
- * click, a hopper, or another mod's sort, disarms it. Only one screen is open at a time, so the state is global.
+ * Draws the items of a sort, deposit, or retrieve Minisort asked for gliding from their old slots to their new ones.
+ * It arms when the player presses one, and plays only if the next change to those slots keeps every item's total:
+ * anything else, like a click, a hopper, or another mod's sort, disarms it. Only one screen is open at a time, so the
+ * state is global.
  */
-public final class SortGlide {
+public final class ItemGlide {
     private static final long DURATION_NANOS = 120_000_000L;
     // A sort the server rejected changes nothing; stop waiting for it after this long.
     private static final long ARMED_NANOS = 1_000_000_000L;
-    // Smooth Swapping animates every slot change, sorts included; two animations at once would fight.
+    // Smooth Swapping animates every slot change, ours included; two animations at once would fight.
     private static final boolean OTHER_ANIMATION = Platform.isModLoaded("smoothswapping");
 
     private static @Nullable Armed armed;
     private static @Nullable Playing playing;
 
-    private SortGlide() {
+    private ItemGlide() {
     }
 
-    /** Remembers what the sorted slots hold, just before the sort request goes out. */
+    /** Remembers what the slots an action touches hold, just before its request goes out. */
     public static void arm(AbstractContainerMenu menu, List<Slot> slots) {
         playing = null;
         armed = null;
-        if (OTHER_ANIMATION || !ClientConfig.sortAnimation() || slots.isEmpty()) {
+        if (OTHER_ANIMATION || !ClientConfig.itemAnimation() || slots.isEmpty()) {
             return;
         }
         Map<Slot, ItemStack> before = new LinkedHashMap<>();
@@ -128,8 +129,8 @@ public final class SortGlide {
 
     /**
      * Pairs old slots with new ones, item by item. Counts pour from the old slots into the new ones in slot order,
-     * as the server pools them. A new slot glides in from the old slot that gave it the most; every other old slot
-     * that gave it some flies in as a ghost.
+     * as the server pools them. A new slot that held some of the item already stays put; otherwise it glides in from
+     * the old slot that gave it the most. Every other old slot that gave it some flies in as a ghost.
      */
     private static Playing pair(AbstractContainerMenu menu, Map<Slot, ItemStack> before, long now) {
         Map<Slot, Flight> flights = new IdentityHashMap<>();
@@ -160,7 +161,8 @@ public final class SortGlide {
                         source++;
                     }
                 }
-                Slot primary = given.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(to);
+                Slot primary = given.containsKey(to) ? to
+                        : given.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(to);
                 ItemStack frozen = landed.copy();
                 if (primary != to) {
                     flights.put(to, new Flight(primary.x, primary.y, frozen));

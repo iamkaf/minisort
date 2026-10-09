@@ -1,6 +1,6 @@
 package com.iamkaf.minisort.mixin.client;
 
-import com.iamkaf.minisort.client.SortGlide;
+import com.iamkaf.minisort.client.ItemGlide;
 //? if >=1.21.11 {
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Draws a sort's slots on their way to their new positions; {@link SortGlide} decides what moves. A moving slot is
+ * Draws the slots Minisort moved on their way to their new positions; {@link ItemGlide} decides what moves. A moving slot is
  * drawn whole, translated, so whatever other mods draw on that slot moves with it. Nothing is cancelled.
  */
 @Mixin(AbstractContainerScreen.class)
-public abstract class SortGlideScreenMixin {
+public abstract class ItemGlideScreenMixin {
     @Shadow
     protected AbstractContainerMenu menu;
 
@@ -54,7 +54,7 @@ public abstract class SortGlideScreenMixin {
 
     @WrapMethod(method = "extractSlot")
     private void miniSort$glideSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, Operation<Void> original) {
-        SortGlide.Offset offset = SortGlide.offset(slot);
+        ItemGlide.Offset offset = ItemGlide.offset(slot);
         if (offset == null) {
             original.call(graphics, slot, mouseX, mouseY);
         } else if (!miniSort$drawingMoving && !miniSort$inPlace) {
@@ -81,8 +81,8 @@ public abstract class SortGlideScreenMixin {
             miniSort$drawingMoving = false;
             miniSort$moving.clear();
         }
-        for (SortGlide.Ghost ghost : SortGlide.ghosts()) {
-            SortGlide.Offset offset = SortGlide.ghostOffset(ghost);
+        for (ItemGlide.Ghost ghost : ItemGlide.ghosts()) {
+            ItemGlide.Offset offset = ItemGlide.ghostOffset(ghost);
             graphics.pose().pushMatrix();
             graphics.pose().translate(offset.x(), offset.y());
             graphics.item(ghost.item(), ghost.to().x, ghost.to().y);
@@ -100,7 +100,7 @@ public abstract class SortGlideScreenMixin {
 
     @WrapMethod(method = "renderSlot")
     private void miniSort$glideSlot(GuiGraphics graphics, Slot slot, int mouseX, int mouseY, Operation<Void> original) {
-        SortGlide.Offset offset = SortGlide.offset(slot);
+        ItemGlide.Offset offset = ItemGlide.offset(slot);
         if (offset == null) {
             original.call(graphics, slot, mouseX, mouseY);
         } else if (!miniSort$drawingMoving && !miniSort$inPlace) {
@@ -127,8 +127,8 @@ public abstract class SortGlideScreenMixin {
             miniSort$drawingMoving = false;
             miniSort$moving.clear();
         }
-        for (SortGlide.Ghost ghost : SortGlide.ghosts()) {
-            SortGlide.Offset offset = SortGlide.ghostOffset(ghost);
+        for (ItemGlide.Ghost ghost : ItemGlide.ghosts()) {
+            ItemGlide.Offset offset = ItemGlide.ghostOffset(ghost);
             graphics.pose().pushMatrix();
             graphics.pose().translate(offset.x(), offset.y());
             graphics.renderItem(ghost.item(), ghost.to().x, ghost.to().y);
@@ -138,7 +138,7 @@ public abstract class SortGlideScreenMixin {
     *///?} else {
     /*@Inject(method = "render", at = @At("HEAD"))
     private void miniSort$glideFrame(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo callback) {
-        SortGlide.frame(menu);
+        ItemGlide.frame(menu);
     }
 
     // Inside renderSlot's own push and pop, right after it lifts the slot's items: raised further, a moving slot
@@ -146,7 +146,7 @@ public abstract class SortGlideScreenMixin {
     @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V",
             ordinal = 0, shift = At.Shift.AFTER))
     private void miniSort$glideSlot(GuiGraphics graphics, Slot slot, CallbackInfo callback) {
-        SortGlide.Offset offset = SortGlide.offset(slot);
+        ItemGlide.Offset offset = ItemGlide.offset(slot);
         if (offset != null) {
             graphics.pose().translate(offset.x(), offset.y(), 75F);
         }
@@ -155,8 +155,8 @@ public abstract class SortGlideScreenMixin {
     @Inject(method = "render", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderLabels(Lnet/minecraft/client/gui/GuiGraphics;II)V"))
     private void miniSort$glideGhosts(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo callback) {
-        for (SortGlide.Ghost ghost : SortGlide.ghosts()) {
-            SortGlide.Offset offset = SortGlide.ghostOffset(ghost);
+        for (ItemGlide.Ghost ghost : ItemGlide.ghosts()) {
+            ItemGlide.Offset offset = ItemGlide.ghostOffset(ghost);
             graphics.pose().pushPose();
             graphics.pose().translate(offset.x(), offset.y(), 175F);
             graphics.renderItem(ghost.item(), ghost.to().x, ghost.to().y);
@@ -172,7 +172,7 @@ public abstract class SortGlideScreenMixin {
             miniSort$inPlace = true;
             miniSort$moving.clear();
         }
-        SortGlide.frame(menu);
+        ItemGlide.frame(menu);
     }
     //?}
 }

@@ -410,7 +410,7 @@ describe("Minisort", () => {
     await expect(async () => (await ctx.client.screen()).lists().entries().length > 0).toEventuallyEqual(true, { timeout: "5s" });
     screen = await ctx.client.screen();
     const labels = screen.lists().entries().map((entry) => entry.label);
-    for (const setting of ["Sort Mode", "Sort Animation", "Button Style", "Turned Off In"]) {
+    for (const setting of ["Sort Mode", "Item Animation", "Button Style", "Turned Off In"]) {
       expect(labels).toContain(setting);
     }
     const sortMode = screen.lists().entries().find((entry) => entry.label === "Sort Mode");

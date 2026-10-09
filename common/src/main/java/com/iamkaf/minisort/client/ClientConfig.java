@@ -20,7 +20,7 @@ public final class ClientConfig {
     private static final ConfigValue<String> SORT_MODE;
     private static final ConfigValue<String> BUTTON_STYLE;
     private static final ConfigValue<List<String>> HIDDEN_MENUS;
-    private static final ConfigValue<Boolean> SORT_ANIMATION;
+    private static final ConfigValue<Boolean> ITEM_ANIMATION;
 
     static {
         ConfigBuilder builder = Konfig.builder(MiniSort.MOD_ID, "client")
@@ -43,9 +43,9 @@ public final class ClientConfig {
                 .info(info -> ConfigPanels.picture(info, "sort_mode", "sort_creative"))
                 .clientOnly()
                 .build();
-        SORT_ANIMATION = builder.bool("sort_animation", true)
-                .comment("Whether sorted items glide to their new slots.")
-                .info(info -> ConfigPanels.picture(info, "sort_animation", "sort_animation"))
+        ITEM_ANIMATION = builder.bool("item_animation", true)
+                .comment("Whether items glide to their new slots when Minisort sorts, deposits, or retrieves them.")
+                .info(info -> ConfigPanels.picture(info, "item_animation", "item_animation"))
                 .clientOnly()
                 .build();
         builder.pop();
@@ -88,8 +88,8 @@ public final class ClientConfig {
         return ButtonStyle.valueOf(BUTTON_STYLE.get());
     }
 
-    public static boolean sortAnimation() {
-        return SORT_ANIMATION.get();
+    public static boolean itemAnimation() {
+        return ITEM_ANIMATION.get();
     }
 
     /** Whether the player turned Minisort off for this kind of menu. */

@@ -6,7 +6,7 @@ import com.iamkaf.minisort.client.MiniSortClient;
 import com.iamkaf.minisort.client.MiniSortScreen;
 import com.iamkaf.minisort.client.PlacedButton;
 import com.iamkaf.minisort.client.ShiftClickButton;
-import com.iamkaf.minisort.client.SortGlide;
+import com.iamkaf.minisort.client.ItemGlide;
 import com.iamkaf.minisort.network.MiniSortNetwork;
 import com.iamkaf.minisort.network.TransferContainerPayload.Action;
 import com.iamkaf.minisort.sort.SortMenuPolicy;
@@ -266,12 +266,14 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Min
                 sorted.add(slot);
             }
         }
-        SortGlide.arm(menu, sorted);
+        ItemGlide.arm(menu, sorted);
         MiniSortNetwork.sort(menu.containerId, target, ClientSortOrder.of(menu, ClientConfig.sortMode()));
     }
 
     @Unique
     private void miniSort$transfer(Action action) {
+        // A transfer moves items between the container and the inventory, so every slot of the menu takes part.
+        ItemGlide.arm(menu, menu.slots);
         MiniSortNetwork.transfer(menu.containerId, action);
     }
 
