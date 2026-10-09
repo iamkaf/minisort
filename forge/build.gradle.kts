@@ -14,3 +14,7 @@ dependencies {
 tasks.withType<JavaCompile>().configureEach {
     exclude("**/compat/rei/**", "**/compat/controlify/**")
 }
+
+tasks.withType<Javadoc>().configureEach {
+    exclude("**/compat/rei/**", "**/compat/controlify/**")
+}
