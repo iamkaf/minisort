@@ -32,6 +32,7 @@ public record TransferContainerPayload(int containerId, Action action)
     };
 
     public enum Action {
+        /** Main inventory stacks of items the container already holds, hotbar excluded. */
         DEPOSIT_MATCHING(0, true, true),
         RETRIEVE_MATCHING(1, false, true),
         /** Shift-click on Deposit: the whole main inventory, hotbar excluded. */

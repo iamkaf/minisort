@@ -7,11 +7,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public final class SortService {
@@ -53,7 +56,7 @@ public final class SortService {
         }
 
         List<ItemStack> snapshot = snapshot(slots);
-        List<ItemStack> plan = plan(slots, snapshot, order(payload.mode(), player));
+        List<ItemStack> plan = plan(slots, snapshot, order(payload.order()));
         if (plan == null) {
             return SortResult.SLOT_CONSTRAINT;
         }
@@ -106,14 +109,15 @@ public final class SortService {
         return snapshot;
     }
 
-    // Stacks that compare equal keep their first-seen order, so sorting twice changes nothing.
-    private static Comparator<PooledStack> order(SortMode mode, ServerPlayer player) {
-        return switch (mode) {
-            case REGISTRY_ID -> Comparator.comparing(pool -> itemId(pool.prototype));
-            case CATEGORIES -> Comparator.comparing(
-                    pool -> CategoryKey.of(ItemCategory.of(pool.prototype, player), itemId(pool.prototype))
-            );
-        };
+    // Items follow the client's order; anything missing from it goes last, by ID. Stacks of one item keep their
+    // first-seen order, so sorting twice changes nothing.
+    private static Comparator<PooledStack> order(List<Item> clientOrder) {
+        Map<Item, Integer> ranks = new HashMap<>();
+        for (Item item : clientOrder) {
+            ranks.putIfAbsent(item, ranks.size());
+        }
+        return Comparator.<PooledStack>comparingInt(pool -> ranks.getOrDefault(pool.prototype.getItem(), Integer.MAX_VALUE))
+                .thenComparing(pool -> itemId(pool.prototype));
     }
 
     private static List<ItemStack> plan(List<Slot> slots, List<ItemStack> snapshot, Comparator<PooledStack> order) {

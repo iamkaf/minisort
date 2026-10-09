@@ -18,7 +18,7 @@ Minisort lets you sort storage, put matching items away, and collect supplies wi
 You'll find the controls along the right edge of an open chest.
 
 - **Sort** combines stacks where there's room, then arranges the chest's contents. Your carried items aren't rearranged.
-- **Deposit** checks what the chest contains and stores matching items from your inventory and hotbar. Put some cobblestone in a chest, and you can send the rest of your cobblestone there with one click.
+- **Deposit** checks what the chest contains and stores matching items from your main inventory. Your hotbar stays put. Put some cobblestone in a chest, and you can send the rest of your cobblestone there with one click.
 - **Retrieve** uses your carried items as the filter. If you have a torch, clicking it collects the chest's torches, up to the space available in your inventory.
 
 Holding **Shift** removes the matching-item filter. **Shift-Deposit** stores as much of your main inventory as the chest can hold, without moving hotbar items. **Shift-Retrieve** collects whatever fits, using the main inventory slots before the hotbar. Each button has a tooltip explaining its action.
@@ -35,11 +35,13 @@ The inventory screen's **Sort** button arranges your 27 main inventory slots. Ho
 
 Middle-click works as a shortcut: click a storage slot to sort that container, or an inventory slot to sort your carried items. Creative mode retains Minecraft's usual middle-click item copying.
 
+The **Sort** key, R by default, does the same without a middle mouse button: it sorts the side under the cursor, or the open container when the cursor isn't over a slot. Change it in the Controls settings.
+
 ## Sort order
 
-The default order uses registry IDs. Items from the same mod appear together, ordered by their ID names.
+Items sort in the creative inventory's order: building blocks first, then colored and natural blocks, tools, combat gear, food, and ingredients. Items from other mods follow their creative tabs too. An item that isn't on any tab sits next to related items.
 
-Choose the experimental **Categories** option to group blocks, tools, combat equipment, armor, food, potions, materials, and spawn eggs. Related building blocks share a group: oak logs, planks, stairs, and doors, for example. Equipment is sorted by tier; colored items use the dye sequence.
+Pick **Registry ID** in the settings to sort alphabetically by item ID instead, which keeps each mod's items together.
 
 ## Hand refill
 

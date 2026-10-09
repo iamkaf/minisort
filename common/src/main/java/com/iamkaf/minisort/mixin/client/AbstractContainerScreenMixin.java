@@ -2,6 +2,8 @@ package com.iamkaf.minisort.mixin.client;
 
 import com.iamkaf.minisort.MiniSort;
 import com.iamkaf.minisort.client.ClientConfig;
+import com.iamkaf.minisort.client.ClientSortOrder;
+import com.iamkaf.minisort.client.MiniSortClient;
 import com.iamkaf.minisort.client.PlacedButton;
 import com.iamkaf.minisort.client.ShiftClickButton;
 import com.iamkaf.minisort.network.MiniSortNetwork;
@@ -12,10 +14,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 //? if >=1.21.9 {
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 //?}
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -72,6 +77,9 @@ public abstract class AbstractContainerScreenMixin extends Screen {
 
     @Shadow
     protected int topPos;
+
+    @Shadow
+    protected @Nullable Slot hoveredSlot;
 
     //? if >=1.21.9 {
     @Shadow
@@ -132,7 +140,7 @@ public abstract class AbstractContainerScreenMixin extends Screen {
     }
 
     // Opening the recipe book slides the inventory screen sideways, so the buttons follow its corner.
-    // Holding Shift shows the "everything" icons. Each press reads Shift from its own click.
+    // Holding Shift shows the "everything" icons.
     @Unique
     private void miniSort$updateButtons() {
         boolean shiftDown = miniSort$shiftDown();
@@ -145,14 +153,28 @@ public abstract class AbstractContainerScreenMixin extends Screen {
     //? if >=1.21.9 {
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void miniSort$middleClickSort(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> callback) {
-        if (event.button() == MIDDLE_MOUSE_BUTTON && miniSort$sortSection(getHoveredSlot(event.x(), event.y()))) {
+        if (event.button() == MIDDLE_MOUSE_BUTTON && miniSort$middleClick(getHoveredSlot(event.x(), event.y()))) {
+            callback.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void miniSort$sortKey(KeyEvent event, CallbackInfoReturnable<Boolean> callback) {
+        if (MiniSortClient.SORT_KEY.matches(event) && miniSort$sortKey()) {
             callback.setReturnValue(true);
         }
     }
     //?} else {
     /*@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void miniSort$middleClickSort(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> callback) {
-        if (button == MIDDLE_MOUSE_BUTTON && miniSort$sortSection(findSlot(mouseX, mouseY))) {
+        if (button == MIDDLE_MOUSE_BUTTON && miniSort$middleClick(findSlot(mouseX, mouseY))) {
+            callback.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void miniSort$sortKey(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> callback) {
+        if (MiniSortClient.SORT_KEY.matches(keyCode, scanCode) && miniSort$sortKey()) {
             callback.setReturnValue(true);
         }
     }
@@ -160,10 +182,9 @@ public abstract class AbstractContainerScreenMixin extends Screen {
 
     /** Sorts the inventory or the container the clicked slot belongs to. Creative keeps middle-click for cloning. */
     @Unique
-    private boolean miniSort$sortSection(@Nullable Slot slot) {
+    private boolean miniSort$middleClick(@Nullable Slot slot) {
         LocalPlayer player = minecraft.player;
-        if (player == null || player.isSpectator() || player.hasInfiniteMaterials()
-                || slot == null || !menu.getCarried().isEmpty() || !MiniSortNetwork.serverSupported()) {
+        if (player == null || player.hasInfiniteMaterials() || slot == null || !miniSort$canSort()) {
             return false;
         }
         if (slot.container == player.getInventory()) {
@@ -177,9 +198,40 @@ public abstract class AbstractContainerScreenMixin extends Screen {
         return false;
     }
 
+    /**
+     * The sort key does what middle-click does, for players without a middle button. With no slot under the
+     * pointer, it sorts the container, or the inventory on screens without one.
+     */
+    @Unique
+    private boolean miniSort$sortKey() {
+        LocalPlayer player = minecraft.player;
+        // The creative inventory types the key into its search box, and other screens' text fields need it too.
+        if (player == null || (Object) this instanceof CreativeModeInventoryScreen || getFocused() instanceof EditBox
+                || !miniSort$canSort()) {
+            return false;
+        }
+        Slot slot = hoveredSlot;
+        boolean storage = SortMenuPolicy.supportsStorageActions(menu);
+        if (slot != null ? slot.container == player.getInventory() : !storage) {
+            miniSort$sort(SortTarget.INVENTORY);
+            return true;
+        }
+        if (storage) {
+            miniSort$sort(SortTarget.CONTAINER);
+            return true;
+        }
+        return false;
+    }
+
+    @Unique
+    private boolean miniSort$canSort() {
+        LocalPlayer player = minecraft.player;
+        return player != null && !player.isSpectator() && menu.getCarried().isEmpty() && MiniSortNetwork.serverSupported();
+    }
+
     @Unique
     private void miniSort$sort(SortTarget target) {
-        MiniSortNetwork.sort(menu.containerId, target, ClientConfig.sortMode());
+        MiniSortNetwork.sort(menu.containerId, target, ClientSortOrder.of(menu, ClientConfig.sortMode()));
     }
 
     @Unique
@@ -206,8 +258,17 @@ public abstract class AbstractContainerScreenMixin extends Screen {
                 .append(Component.translatable(translationKey + ".description").withStyle(ChatFormatting.GRAY));
         if (shown == PlacedButton.Shown.WITHOUT_SHIFT) {
             tooltip.append("\n").append(Component.translatable("gui.minisort.shift_for_all").withStyle(ChatFormatting.DARK_GRAY));
+        } else if (shown == PlacedButton.Shown.ALWAYS) {
+            // Only the sort buttons show always; name their shortcuts, including the key as the player bound it.
+            Component shortcut = MiniSortClient.SORT_KEY.isUnbound()
+                    ? Component.translatable("gui.minisort.sort_shortcut.mouse")
+                    : Component.translatable("gui.minisort.sort_shortcut", MiniSortClient.SORT_KEY.getTranslatedKeyMessage());
+            tooltip.append("\n").append(shortcut.copy().withStyle(ChatFormatting.DARK_GRAY));
         }
-        ShiftClickButton button = new ShiftClickButton(leftPos + x, topPos + y, sprites, action, title);
+        // The "everything" twin always does everything: a controller can fake a held Shift for the icons without
+        // putting Shift on its click. The plain twin still upgrades when its own click carries Shift.
+        ShiftClickButton.Action pressed = shown == PlacedButton.Shown.WITH_SHIFT ? shift -> action.press(true) : action;
+        ShiftClickButton button = new ShiftClickButton(leftPos + x, topPos + y, sprites, pressed, title);
         button.setTooltip(Tooltip.create(tooltip));
         addRenderableWidget(button);
         miniSort$buttons.add(new PlacedButton(button, x, y, shown));

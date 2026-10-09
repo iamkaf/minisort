@@ -3,8 +3,10 @@ package com.iamkaf.minisort.network;
 import com.iamkaf.amber.api.networking.v1.NetworkChannel;
 import com.iamkaf.amber.api.networking.v1.PeerAvailability;
 import com.iamkaf.minisort.MiniSort;
-import com.iamkaf.minisort.sort.SortMode;
 import com.iamkaf.minisort.sort.SortTarget;
+import net.minecraft.world.item.Item;
+
+import java.util.List;
 
 public final class MiniSortNetwork {
     // Optional, so players with Minisort can still join servers without it.
@@ -38,8 +40,8 @@ public final class MiniSortNetwork {
         return CHANNEL.serverAvailability() == PeerAvailability.SUPPORTED;
     }
 
-    public static void sort(int containerId, SortTarget target, SortMode mode) {
-        CHANNEL.sendToServer(new SortContainerPayload(containerId, target, mode));
+    public static void sort(int containerId, SortTarget target, List<Item> order) {
+        CHANNEL.sendToServer(new SortContainerPayload(containerId, target, order));
     }
 
     public static void transfer(int containerId, TransferContainerPayload.Action action) {

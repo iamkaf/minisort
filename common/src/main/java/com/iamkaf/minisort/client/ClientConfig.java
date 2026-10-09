@@ -28,17 +28,17 @@ public final class ClientConfig {
                 .info(info -> ConfigPanels.screen(info, "client", "showcase"));
 
         builder.push("sorting");
-        builder.categoryInfo(info -> ConfigPanels.picture(info, "sorting", "sort_categories"));
+        builder.categoryInfo(info -> ConfigPanels.picture(info, "sorting", "sort_creative"));
         // Option values are SortMode names, so sortMode() can read them back directly.
-        SORT_MODE = builder.dropdown("sort_mode", SortMode.REGISTRY_ID.name(), options -> options
+        SORT_MODE = builder.dropdown("sort_mode", SortMode.CREATIVE.name(), options -> options
+                        .option(SortMode.CREATIVE.name(), option -> option
+                                .labelKey(ConfigPanels.key("sort_mode.creative"))
+                                .info(info -> ConfigPanels.picture(info, "sort_mode.creative", "sort_creative")))
                         .option(SortMode.REGISTRY_ID.name(), option -> option
                                 .labelKey(ConfigPanels.key("sort_mode.registry_id"))
-                                .info(info -> ConfigPanels.picture(info, "sort_mode.registry_id", "sort_registry_id")))
-                        .option(SortMode.CATEGORIES.name(), option -> option
-                                .labelKey(ConfigPanels.key("sort_mode.categories"))
-                                .info(info -> ConfigPanels.picture(info, "sort_mode.categories", "sort_categories"))))
-                .comment("How the sort button orders a container: REGISTRY_ID or CATEGORIES (experimental).")
-                .info(info -> ConfigPanels.picture(info, "sort_mode", "sort_categories"))
+                                .info(info -> ConfigPanels.picture(info, "sort_mode.registry_id", "sort_registry_id"))))
+                .comment("How the sort button orders a container: CREATIVE (the creative inventory's order) or REGISTRY_ID.")
+                .info(info -> ConfigPanels.picture(info, "sort_mode", "sort_creative"))
                 .clientOnly()
                 .build();
         builder.pop();
