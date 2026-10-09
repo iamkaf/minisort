@@ -390,8 +390,7 @@ describe("Minisort", () => {
   });
 
   // Leaving the world ends every later test, so this stays last.
-  // TeaKit's Forge control plane stops answering after leaveWorld, so this runs on Fabric and NeoForge.
-  test("opens the config screen with its picture panels", { target: { loader: ["fabric", "neoforge"] } }, async (ctx) => {
+  test("opens the config screen with its picture panels", async (ctx) => {
     await ctx.client.leaveWorld();
     await ctx.client.waitForScreen("Title", { timeoutMs: 30_000 });
     let screen = await ctx.client.screen();
