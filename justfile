@@ -32,8 +32,13 @@ run-client node:
 teakit-check node test_file="test/teakit/minisort.test.ts" timeout="300":
     @./teakitw run --node "{{ node }}" --test-file "{{ test_file }}" --timeout "{{ timeout }}"
 
-horizontal-jars:
-    @./gradlew validateHorizontalJars --console=plain
+horizontal-jars version="all":
+    @versions="{{ version }}"; if [ "$versions" = all ]; then versions=$(just list-versions); elif ! just list-versions | grep -Fxq "$versions"; then echo "Unknown version: $versions"; exit 1; fi; for version in $versions; do echo "==> $version horizontal jar"; ./gradlew -Pmultiloader.target.versions="$version" validateHorizontalJars --console=plain || exit; done
+
+# Runs the dedicated-server pair test against the horizontal jar; build it first with `just horizontal-jars <version>`.
+pair node timeout="300":
+    @modstage clean instance "{{ node }}" --side server > /dev/null 2>&1 || true
+    @env -u WAYLAND_DISPLAY SDL_VIDEO_DRIVER=x11 GLFW_PLATFORM=x11 XDG_SESSION_TYPE=x11 xvfb-run -a -s "-screen 0 1920x1080x24" ./teakitw pair --node "{{ node }}" --modstage-config modstage.toml --modstage-instance "{{ node }}" --server-address 127.0.0.1:25592 --test-file test/teakit-pair/dedicated-server.test.ts --timeout "{{ timeout }}"
 
 publish-version version *args:
     @tasks=(":common:{{ version }}:publishAllPublicationsToKafMavenRepository"); for loader in $(just list-loaders "{{ version }}"); do tasks+=(":$loader:{{ version }}:publishAllPublicationsToKafMavenRepository"); done; ./gradlew --configure-on-demand "${tasks[@]}" {{ args }} --console=plain
