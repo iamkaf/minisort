@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/minisort-banner.webp" alt="Minisort: a messy chest sorts itself into order when the sort button beside it is clicked" width="100%" />
+  <img src=".github/minisort-banner.webp" alt="Minisort sorting a chest with its Sort button" width="100%" />
 </p>
 
 <p align="center">
@@ -11,73 +11,73 @@
   <a href="https://discord.gg/HV5WgTksaB"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/discord/1207469438719492176.svg?variant=secondary&amp;mode=dark" /><img alt="Discord" src="https://shieldcn.dev/discord/1207469438719492176.svg?variant=secondary&amp;mode=light" /></picture></a>
 </p>
 
-Minisort puts three small buttons beside your chests, barrels, shulker boxes, and other storage. **Sort** tidies the container, **Deposit** puts away everything you're carrying that the container already holds, and **Retrieve** takes out more of what you already carry. Your inventory gets a Sort button too. When the stack in your hand runs out, the next matching stack from your inventory moves into its place.
+Minisort lets you sort storage, put matching items away, and collect supplies with three buttons: **Sort**, **Deposit**, and **Retrieve**. You can sort your inventory as well. Automatic hand refill replaces used-up stacks and broken tools with matching items you're carrying.
 
 ## The buttons
 
-Open a chest and the buttons sit to the right of it.
+You'll find the controls along the right edge of an open chest.
 
-- **Sort** merges partial stacks and puts the container in order. It only touches the container; your inventory stays as it is.
-- **Deposit** moves every stack from your inventory, hotbar included, whose item is already in the container. Your sword stays with you, your extra cobblestone goes into the cobblestone chest.
-- **Retrieve** pulls every stack from the container whose item you already carry. Bring one torch, and the chest's torches come back with you.
+- **Sort** combines stacks where there's room, then arranges the chest's contents. Your carried items aren't rearranged.
+- **Deposit** checks what the chest contains and stores matching items from your inventory and hotbar. Put some cobblestone in a chest, and you can send the rest of your cobblestone there with one click.
+- **Retrieve** uses your carried items as the filter. If you have a torch, clicking it collects the chest's torches, up to the space available in your inventory.
 
-Hold **Shift** and Deposit and Retrieve move everything instead. Shift-Deposit empties your main inventory into the chest and leaves your hotbar alone. Shift-Retrieve takes everything that fits, filling your main inventory before your hotbar. Hover any button to see what it does.
+Holding **Shift** removes the matching-item filter. **Shift-Deposit** stores as much of your main inventory as the chest can hold, without moving hotbar items. **Shift-Retrieve** collects whatever fits, using the main inventory slots before the hotbar. Each button has a tooltip explaining its action.
 
 <p align="center">
-  <img src=".github/sort-before-after.png" alt="A messy chest before sorting, and the same chest after one click on Sort" width="100%" />
+  <img src=".github/sort-before-after.png" alt="Chest contents before and after using Sort" width="100%" />
 </p>
 
-The buttons show up on chests, barrels, ender chests, shulker boxes, dispensers, droppers, and hoppers. Crafting tables, furnaces, anvils, villagers, and other special screens are left alone.
+Supported storage includes regular and ender chests, barrels, shulker boxes, dispensers, droppers, and hoppers. Screens for crafting, smelting, repairing, trading, and similar tasks don't have these controls.
 
 ## Sorting your inventory
 
-Your own inventory has a Sort button too, beside the inventory screen. It sorts the 27 main slots and never touches your hotbar.
+The inventory screen's **Sort** button arranges your 27 main inventory slots. Hotbar positions stay fixed.
 
-You can also middle-click any slot to sort the side it belongs to: a slot in the chest sorts the chest, a slot in your inventory sorts your inventory. In Creative mode, middle-click keeps its vanilla job of copying items.
+Middle-click works as a shortcut: click a storage slot to sort that container, or an inventory slot to sort your carried items. Creative mode retains Minecraft's usual middle-click item copying.
 
 ## Sort order
 
-By default, Sort orders items by their ID, which groups them by mod and then by name.
+The default order uses registry IDs. Items from the same mod appear together, ordered by their ID names.
 
-There's also an experimental **Categories** mode. It groups blocks, tools, combat gear, armor, food, potions, materials, and spawn eggs. Blocks of one material stay together, so oak logs, planks, stairs, and doors sit side by side. Tools and armor go in tier order, and colored items follow dye order.
+Choose the experimental **Categories** option to group blocks, tools, combat equipment, armor, food, potions, materials, and spawn eggs. Related building blocks share a group: oak logs, planks, stairs, and doors, for example. Equipment is sorted by tier; colored items use the dye sequence.
 
 ## Hand refill
 
-When a stack in your main hand or offhand runs out, Minisort refills it from your inventory:
+Hand refill works for either hand. It searches your inventory for a replacement after you:
 
-- the last block you placed
-- the last food or drink
-- the last ender pearl, snowball, bone meal, or spawn egg you used
-- a tool that just broke
+- place the final block in a stack
+- finish a stack of food or drinks
+- use your remaining ender pearl, snowball, bone meal, or spawn egg
+- break a tool
 
-The replacement has to match exactly, enchantments and names included. Tools are the one exception: a worn copy of the same tool counts. Refill looks through your hotbar first and then the rest of your inventory. It never takes from shulker boxes, bundles, or the chest you have open.
+Names, enchantments, and other item data must match. Replacement tools may have different wear, but must otherwise match the broken tool. By default, the search starts in the hotbar and continues through your main inventory. Items inside bundles, shulker boxes, or open containers aren't available for refill.
 
-Dropping an item or putting on armor never triggers a refill, and Creative mode doesn't refill at all.
+Refill is disabled in Creative mode. Throwing items away and equipping armor don't activate it either.
 
 ## Configuration
 
 <p align="center">
-  <img src=".github/config.webp" alt="The Minisort config screen, sliding from setting to setting: each setting shows a picture of what it changes" width="100%" />
+  <img src=".github/config.webp" alt="Minisort settings with illustrations of their effects" width="100%" />
 </p>
 
-Open Minisort's settings from your loader's mod list. On Fabric, install [Mod Menu](https://modrinth.com/mod/modmenu) to add the configuration button.
+Use the mod list to reach Minisort's configuration screen. Fabric users need [Mod Menu](https://modrinth.com/mod/modmenu) for this entry.
 
-- **Sort Mode** and the button positions are your own, so everyone on a server can pick differently.
-- **Hand Refill** settings come from the server. Blocks, broken tools, food and drinks, and other right-click items can each be turned off. Turn off **Search Hotbar First** to keep your hotbar layout intact.
+- Each player chooses their **Sort Mode** and button placement independently.
+- The server controls **Hand Refill**, with separate switches for blocks, tool breakage, food and drinks, and other items used by right-clicking. Disable **Search Hotbar First** to look for replacements in your main inventory before checking other hotbar slots.
 
 ## Installation
 
-Minisort needs [Amber](https://modrinth.com/mod/amber) and [Konfig](https://modrinth.com/mod/konfig). On Fabric it also needs [Fabric API](https://modrinth.com/mod/fabric-api). Install it on both the client and the server; sorting, moving items, and refilling all happen on the server.
+Install Minisort alongside [Amber](https://modrinth.com/mod/amber) and [Konfig](https://modrinth.com/mod/konfig). Fabric installations require [Fabric API](https://modrinth.com/mod/fabric-api) too. Both the client and server need the mod, since the server handles item sorting, transfers, and refill.
 
-It supports Fabric, Forge, and NeoForge on Minecraft 1.21.11, 26.1.2, 26.2, and 26.3. Older versions will follow.
+Files are available for Fabric, Forge, and NeoForge, covering Minecraft 1.21.11, 26.1.2, 26.2, and 26.3. Support for earlier Minecraft releases is planned.
 
 ## Artifacts
 
-Loader-specific jars are the default publication format. One merged jar per
-Minecraft version can also be built with `just horizontal-jars`.
+Published files are separate jars for each loader. To build a jar combining
+loaders for each Minecraft version, run `just horizontal-jars`.
 
-Merged jars for 26.1.2, 26.2, and 26.3 preserve stable common class names.
-Merged jars for 1.21.11 are experimental: they can relocate common classes or
-loader metadata, which may break addons and mixins that target Minisort
-internals. Use loader-specific jars on 1.21.11 when compatibility is
-important.
+The combined builds retain common class names on 26.1.2, 26.2, and 26.3.
+On 1.21.11, this format is experimental and may relocate common classes or
+loader metadata. Addons and mixins referencing Minisort's internals can
+break as a result; choose a separate loader jar for compatibility on that
+version.
