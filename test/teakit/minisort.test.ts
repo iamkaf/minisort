@@ -240,7 +240,7 @@ describe("Minisort", () => {
     await ctx.client.closeMenus();
   });
 
-  test("deposits the whole main inventory but not the hotbar with Shift", async (ctx) => {
+  test("deposits the whole main inventory but not the hotbar with Shift", { target: { minecraft: ">=1.21.9" } }, async (ctx) => {
     await prepareArea(ctx);
     await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
     await ctx.commands.batch([
@@ -262,7 +262,7 @@ describe("Minisort", () => {
     await ctx.client.closeMenus();
   });
 
-  test("retrieves everything into the main inventory first with Shift", async (ctx) => {
+  test("retrieves everything into the main inventory first with Shift", { target: { minecraft: ">=1.21.9" } }, async (ctx) => {
     await prepareArea(ctx);
     await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
     await ctx.commands.batch([
@@ -286,7 +286,7 @@ describe("Minisort", () => {
       "/item replace entity @s weapon.mainhand with minecraft:stone 1",
       "/item replace entity @s inventory.0 with minecraft:stone 12",
     ]);
-    await expect(ctx.player.inventory()).toContainItem("minecraft:stone", { slot: 0, count: 1 });
+    await eventuallyHolds(ctx, () => expect(ctx.player.inventory()).toContainItem("minecraft:stone", { slot: 0, count: 1 }));
     await ctx.player.useBlock(refillTarget, { face: "up", hand: "main_hand" });
     await eventually(ctx, "/execute if items entity @s weapon.mainhand minecraft:stone[count=12]");
     await ctx.commands.assert("/execute unless items entity @s inventory.0 *");
@@ -296,7 +296,7 @@ describe("Minisort", () => {
       "/item replace entity @s weapon.offhand with minecraft:cobblestone 1",
       "/item replace entity @s inventory.1 with minecraft:cobblestone 7",
     ]);
-    await expect(ctx.player.inventory()).toContainItem("minecraft:cobblestone", { equipmentSlot: "offhand", count: 1 });
+    await eventuallyHolds(ctx, () => expect(ctx.player.inventory()).toContainItem("minecraft:cobblestone", { equipmentSlot: "offhand", count: 1 }));
     await ctx.player.useBlock(refillTarget, { face: "up", hand: "off_hand" });
     await eventually(ctx, "/execute if items entity @s weapon.offhand minecraft:cobblestone[count=7]");
     await ctx.commands.assert("/execute unless items entity @s inventory.1 *");
@@ -407,6 +407,8 @@ describe("Minisort", () => {
       await screen.widgets().activate({ label: "Config", nth: 0 });
     }
     screen = await ctx.client.waitForScreen(configScreen, { timeoutMs: 10_000 });
+    await expect(async () => (await ctx.client.screen()).lists().entries().length > 0).toEventuallyEqual(true, { timeout: "5s" });
+    screen = await ctx.client.screen();
     const labels = screen.lists().entries().map((entry) => entry.label);
     for (const setting of ["Sort Mode", "Sort Animation", "Button Style", "Turned Off In"]) {
       expect(labels).toContain(setting);
@@ -476,16 +478,30 @@ function slotCenter(screen: ClientScreen, pick: SlotPick): { x: number; y: numbe
   return { x: left + slot.x + 8, y: top + slot.y + 8 };
 }
 
+// GLFW's Shift modifier bit, as a shift-click sends it. 1.21.1 clicks carry no modifiers, so the Shift tests skip it.
+const shiftModifier = 1;
+
 // The Sort key's default binding, R.
 const sortKey = 82;
-
-// GLFW's Shift modifier bit, as a shift-click sends it.
-const shiftModifier = 1;
 
 async function containerItems(ctx: TeaKitTestContext): Promise<Item[]> {
   return (await ctx.world.container(containerPos).inspect()).items
     .map(projectItem)
     .sort((left, right) => left.slot - right.slot);
+}
+
+// Retries an assertion about client state that trails the server by a tick or more.
+async function eventuallyHolds(ctx: TeaKitTestContext, check: () => unknown, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      await check();
+      return;
+    } catch (error) {
+      if (Date.now() > deadline) throw error;
+      await ctx.runtime.wait(100);
+    }
+  }
 }
 
 // Polls a server command until it succeeds, for state the server settles at the end of a tick.
