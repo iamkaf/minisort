@@ -1,11 +1,11 @@
 package com.iamkaf.minisort.fabric;
 
-import com.iamkaf.minisort.client.ClientConfig;
+import com.iamkaf.minisort.client.MiniSortClient;
 import net.fabricmc.api.ClientModInitializer;
 
 public final class FabricClientEntrypoint implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ClientConfig.init();
+        MiniSortClient.init();
     }
 }

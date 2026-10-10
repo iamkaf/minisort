@@ -5,6 +5,7 @@ describe.configure({
   timeout: "6m",
   readiness: [Readiness.World, Readiness.Player],
   capabilities: [
+    Capability.ClientInput,
     Capability.ClientScreen,
     Capability.ClientScreens,
     Capability.PlayerInteractions,
@@ -40,10 +41,10 @@ describe("Minisort", () => {
       await screen.widgets().activate("Sort container");
 
       await expect(() => containerItems(ctx)).toEventuallyEqual([
-        { id: "minecraft:apple", count: 3, slot: 0 },
-        { id: "minecraft:dirt", count: 2, slot: 1 },
-        { id: "minecraft:stone", count: 64, slot: 2 },
-        { id: "minecraft:stone", count: 6, slot: 3 },
+        { id: "minecraft:stone", count: 64, slot: 0 },
+        { id: "minecraft:stone", count: 6, slot: 1 },
+        { id: "minecraft:dirt", count: 2, slot: 2 },
+        { id: "minecraft:apple", count: 3, slot: 3 },
       ], { timeout: "5s" });
       await ctx.client.closeMenus();
     });
@@ -70,7 +71,7 @@ describe("Minisort", () => {
     await ctx.client.closeMenus();
   });
 
-  test("shows the container controls in a configurable vertical group", async (ctx) => {
+  test("shows the container controls in a column beside the container's slots", async (ctx) => {
     await prepareStorage(ctx, "minecraft:chest[facing=north]");
     const widgets = (await openContainer(ctx, chestScreen)).widgets().all();
     const sort = widgets.find((widget) => widget.label === "Sort container");
@@ -82,28 +83,30 @@ describe("Minisort", () => {
     expect(retrieve).toBeDefined();
     expect(deposit?.x).toBe(sort?.x);
     expect(retrieve?.x).toBe(sort?.x);
-    expect((deposit?.y ?? 0) - (sort?.y ?? 0)).toBe(20);
-    expect((retrieve?.y ?? 0) - (deposit?.y ?? 0)).toBe(20);
+    expect((deposit?.y ?? 0) - (sort?.y ?? 0)).toBe(13);
+    expect((retrieve?.y ?? 0) - (deposit?.y ?? 0)).toBe(13);
     await ctx.client.closeMenus();
   });
 
-  test("deposits only item types already stored in the container", async (ctx) => {
+  test("deposits only item types already stored in the container, leaving the hotbar", async (ctx) => {
     await prepareArea(ctx);
     await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
     await ctx.commands.batch([
       "/item replace block 0 71 0 container.0 with minecraft:stone 30",
       "/item replace block 0 71 0 container.1 with minecraft:dirt 2",
       "/item replace entity @s hotbar.1 with minecraft:stone 20",
+      "/item replace entity @s inventory.4 with minecraft:stone 15",
       "/item replace entity @s inventory.1 with minecraft:apple 5",
     ], { requireSuccess: true });
     const screen = await openContainer(ctx, chestScreen);
     await screen.widgets().activate("Deposit matching items");
 
-    await expect(async () => totalCount(await containerItems(ctx), "minecraft:stone")).toEventuallyEqual(50, { timeout: "5s" });
+    await expect(async () => totalCount(await containerItems(ctx), "minecraft:stone")).toEventuallyEqual(45, { timeout: "5s" });
     const items = await containerItems(ctx);
     expect(totalCount(items, "minecraft:dirt")).toBe(2);
     expect(totalCount(items, "minecraft:apple")).toBe(0);
-    await ctx.commands.assert("/execute unless items entity @s container.* minecraft:stone");
+    await ctx.commands.assert("/execute unless items entity @s inventory.* minecraft:stone");
+    await ctx.commands.assert("/execute if items entity @s hotbar.1 minecraft:stone[count=20]");
     await ctx.commands.assert("/execute if items entity @s inventory.* minecraft:apple[count=5]");
     await ctx.client.closeMenus();
   });
@@ -154,10 +157,10 @@ describe("Minisort", () => {
     const screen = await ctx.client.waitForScreen("net.minecraft.client.gui.screens.inventory.InventoryScreen", { timeoutMs: 8_000 });
     await screen.widgets().activate("Sort inventory");
 
-    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:apple[count=3]");
-    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:dirt[count=2]");
-    await ctx.commands.assert("/execute if items entity @s inventory.2 minecraft:stone[count=64]");
-    await ctx.commands.assert("/execute if items entity @s inventory.3 minecraft:stone[count=6]");
+    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:stone[count=64]");
+    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:stone[count=6]");
+    await ctx.commands.assert("/execute if items entity @s inventory.2 minecraft:dirt[count=2]");
+    await ctx.commands.assert("/execute if items entity @s inventory.3 minecraft:apple[count=3]");
     await ctx.commands.assert("/execute unless items entity @s inventory.4 *");
     await ctx.commands.assert("/execute if items entity @s hotbar.0 minecraft:stone[count=5]");
     await ctx.commands.assert("/execute if items entity @s hotbar.4 minecraft:apple[count=2]");
@@ -174,8 +177,8 @@ describe("Minisort", () => {
     const screen = await openContainer(ctx, chestScreen);
 
     await middleClickSlot(ctx, screen, (slot) => slot.containerSlot === 9 && slot.slot >= 27);
-    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:apple[count=4]");
-    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:dirt[count=6]");
+    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:dirt[count=6]");
+    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:apple[count=4]");
     expect(await containerItems(ctx)).toEqual([
       { id: "minecraft:stone", count: 20, slot: 0 },
       { id: "minecraft:apple", count: 3, slot: 1 },
@@ -185,10 +188,10 @@ describe("Minisort", () => {
 
     await middleClickSlot(ctx, screen, (slot) => slot.slot === 0);
     await expect(() => containerItems(ctx)).toEventuallyEqual([
-      { id: "minecraft:apple", count: 3, slot: 0 },
-      { id: "minecraft:dirt", count: 2, slot: 1 },
-      { id: "minecraft:stone", count: 64, slot: 2 },
-      { id: "minecraft:stone", count: 6, slot: 3 },
+      { id: "minecraft:stone", count: 64, slot: 0 },
+      { id: "minecraft:stone", count: 6, slot: 1 },
+      { id: "minecraft:dirt", count: 2, slot: 2 },
+      { id: "minecraft:apple", count: 3, slot: 3 },
     ], { timeout: "5s" });
     await ctx.client.closeMenus();
   });
@@ -209,7 +212,35 @@ describe("Minisort", () => {
     await ctx.client.closeMenus();
   });
 
-  test("deposits the whole main inventory but not the hotbar with Shift", async (ctx) => {
+  test("the sort key sorts the container, or the side under the cursor", async (ctx) => {
+    await prepareStorage(ctx, "minecraft:chest[facing=north]");
+    await ctx.commands.batch([
+      "/item replace entity @s inventory.0 with minecraft:dirt 1",
+      "/item replace entity @s inventory.7 with minecraft:apple 4",
+      "/item replace entity @s inventory.8 with minecraft:dirt 5",
+    ], { requireSuccess: true });
+    const screen = await openContainer(ctx, chestScreen);
+
+    // Over no slot, the key sorts the container.
+    await ctx.client.scroll({ x: 2, y: 2, verticalAmount: 0 });
+    await ctx.client.key(sortKey, { release: true });
+    await expect(() => containerItems(ctx)).toEventuallyEqual([
+      { id: "minecraft:stone", count: 64, slot: 0 },
+      { id: "minecraft:stone", count: 6, slot: 1 },
+      { id: "minecraft:dirt", count: 2, slot: 2 },
+      { id: "minecraft:apple", count: 3, slot: 3 },
+    ], { timeout: "5s" });
+    await ctx.commands.assert("/execute if items entity @s inventory.7 minecraft:apple[count=4]");
+
+    // Over an inventory slot, it sorts the inventory instead.
+    await pointAtSlot(ctx, screen, (slot) => slot.containerSlot === 9 && slot.slot >= 27);
+    await ctx.client.key(sortKey, { release: true });
+    await eventually(ctx, "/execute if items entity @s inventory.0 minecraft:dirt[count=6]");
+    await ctx.commands.assert("/execute if items entity @s inventory.1 minecraft:apple[count=4]");
+    await ctx.client.closeMenus();
+  });
+
+  test("deposits the whole main inventory but not the hotbar with Shift", { target: { minecraft: ">=1.21.9" } }, async (ctx) => {
     await prepareArea(ctx);
     await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
     await ctx.commands.batch([
@@ -231,7 +262,7 @@ describe("Minisort", () => {
     await ctx.client.closeMenus();
   });
 
-  test("retrieves everything into the main inventory first with Shift", async (ctx) => {
+  test("retrieves everything into the main inventory first with Shift", { target: { minecraft: ">=1.21.9" } }, async (ctx) => {
     await prepareArea(ctx);
     await ctx.commands.run("/setblock 0 71 0 minecraft:chest[facing=north]");
     await ctx.commands.batch([
@@ -255,7 +286,7 @@ describe("Minisort", () => {
       "/item replace entity @s weapon.mainhand with minecraft:stone 1",
       "/item replace entity @s inventory.0 with minecraft:stone 12",
     ]);
-    await expect(ctx.player.inventory()).toContainItem("minecraft:stone", { slot: 0, count: 1 });
+    await eventuallyHolds(ctx, () => expect(ctx.player.inventory()).toContainItem("minecraft:stone", { slot: 0, count: 1 }));
     await ctx.player.useBlock(refillTarget, { face: "up", hand: "main_hand" });
     await eventually(ctx, "/execute if items entity @s weapon.mainhand minecraft:stone[count=12]");
     await ctx.commands.assert("/execute unless items entity @s inventory.0 *");
@@ -265,7 +296,7 @@ describe("Minisort", () => {
       "/item replace entity @s weapon.offhand with minecraft:cobblestone 1",
       "/item replace entity @s inventory.1 with minecraft:cobblestone 7",
     ]);
-    await expect(ctx.player.inventory()).toContainItem("minecraft:cobblestone", { equipmentSlot: "offhand", count: 1 });
+    await eventuallyHolds(ctx, () => expect(ctx.player.inventory()).toContainItem("minecraft:cobblestone", { equipmentSlot: "offhand", count: 1 }));
     await ctx.player.useBlock(refillTarget, { face: "up", hand: "off_hand" });
     await eventually(ctx, "/execute if items entity @s weapon.offhand minecraft:cobblestone[count=7]");
     await ctx.commands.assert("/execute unless items entity @s inventory.1 *");
@@ -359,8 +390,7 @@ describe("Minisort", () => {
   });
 
   // Leaving the world ends every later test, so this stays last.
-  // TeaKit's Forge control plane stops answering after leaveWorld, so this runs on Fabric and NeoForge.
-  test("opens the config screen with its picture panels", { target: { loader: ["fabric", "neoforge"] } }, async (ctx) => {
+  test("opens the config screen with its picture panels", async (ctx) => {
     await ctx.client.leaveWorld();
     await ctx.client.waitForScreen("Title", { timeoutMs: 30_000 });
     let screen = await ctx.client.screen();
@@ -376,9 +406,12 @@ describe("Minisort", () => {
       await screen.widgets().activate({ label: "Config", nth: 0 });
     }
     screen = await ctx.client.waitForScreen(configScreen, { timeoutMs: 10_000 });
+    await expect(async () => (await ctx.client.screen()).lists().entries().length > 0).toEventuallyEqual(true, { timeout: "5s" });
+    screen = await ctx.client.screen();
     const labels = screen.lists().entries().map((entry) => entry.label);
-    expect(labels).toContain("Sort Mode");
-    expect(labels).toContain("Sort Button X");
+    for (const setting of ["Sort Mode", "Item Animation", "Button Style", "Turned Off In"]) {
+      expect(labels).toContain(setting);
+    }
     const sortMode = screen.lists().entries().find((entry) => entry.label === "Sort Mode");
     if (sortMode != null) {
       // Pointing at a row fills the info panel with its picture.
@@ -419,29 +452,55 @@ async function openContainer(ctx: TeaKitTestContext, screenClass: string): Promi
   return ctx.client.waitForScreen(screenClass, { timeoutMs: 8_000 });
 }
 
-// Buttons sit at fixed offsets from the screen corner, so the Sort button locates the container screen.
-async function middleClickSlot(
-  ctx: TeaKitTestContext,
-  screen: ClientScreen,
-  pick: (slot: { slot: number; containerSlot?: number }) => boolean,
-) {
+type SlotPick = (slot: { slot: number; containerSlot?: number }) => boolean;
+
+async function middleClickSlot(ctx: TeaKitTestContext, screen: ClientScreen, pick: SlotPick) {
+  const { x, y } = slotCenter(screen, pick);
+  await ctx.client.click({ x, y, button: 2 });
+}
+
+async function pointAtSlot(ctx: TeaKitTestContext, screen: ClientScreen, pick: SlotPick) {
+  const { x, y } = slotCenter(screen, pick);
+  await ctx.client.scroll({ x, y, verticalAmount: 0 });
+}
+
+// On a chest screen, the Sort button stands one pixel right of the panel, level with the top of the chest's slots
+// (one pixel above the first slot's item), so it locates the panel's corner.
+function slotCenter(screen: ClientScreen, pick: SlotPick): { x: number; y: number } {
   const sort = screen.widgets().all().find((widget) => widget.label === "Sort container");
   const slot = screen.menu().slots().find(pick);
   if (sort == null || slot?.x == null || slot.y == null) {
-    throw new Error("Could not locate the slot to middle-click");
+    throw new Error("Could not locate the slot");
   }
-  const left = sort.x - 178;
-  const top = sort.y - 4;
-  await ctx.client.click({ x: left + slot.x + 8, y: top + slot.y + 8, button: 2 });
+  const left = sort.x - 177;
+  const top = sort.y - 17;
+  return { x: left + slot.x + 8, y: top + slot.y + 8 };
 }
 
-// GLFW's Shift modifier bit, as a shift-click sends it.
+// GLFW's Shift modifier bit, as a shift-click sends it. 1.21.1 clicks carry no modifiers, so the Shift tests skip it.
 const shiftModifier = 1;
+
+// The Sort key's default binding, R.
+const sortKey = 82;
 
 async function containerItems(ctx: TeaKitTestContext): Promise<Item[]> {
   return (await ctx.world.container(containerPos).inspect()).items
     .map(projectItem)
     .sort((left, right) => left.slot - right.slot);
+}
+
+// Retries an assertion about client state that trails the server by a tick or more.
+async function eventuallyHolds(ctx: TeaKitTestContext, check: () => unknown, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      await check();
+      return;
+    } catch (error) {
+      if (Date.now() > deadline) throw error;
+      await ctx.runtime.wait(100);
+    }
+  }
 }
 
 // Polls a server command until it succeeds, for state the server settles at the end of a tick.

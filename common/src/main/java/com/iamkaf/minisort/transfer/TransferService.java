@@ -57,8 +57,8 @@ public final class TransferService {
 
         TransferContainerPayload.Action action = payload.action();
         List<Slot> origins = switch (action) {
-            case DEPOSIT_MATCHING -> inventory;
-            case DEPOSIT_ALL -> main;
+            // Deposits leave the hotbar alone: those are the stacks the player is building or fighting with.
+            case DEPOSIT_MATCHING, DEPOSIT_ALL -> main;
             case RETRIEVE_MATCHING, RETRIEVE_ALL -> container;
         };
         List<Slot> destinations = action.deposits() ? container : inventory;

@@ -9,7 +9,8 @@
     "ServerPlayerGameModeMixin"
   ],
   "client": [
-    "client.AbstractContainerScreenMixin"
+    "client.AbstractContainerScreenMixin",
+    "client.ItemGlideScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

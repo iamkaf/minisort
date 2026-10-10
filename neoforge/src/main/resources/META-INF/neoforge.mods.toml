@@ -40,3 +40,21 @@ type = "required"
 versionRange = "[${konfig_version},)"
 ordering = "AFTER"
 side = "BOTH"
+
+# The Sort binding needs the binding API, which arrived in Controlify 3.
+[[dependencies.${mod_id}]]
+modId = "controlify"
+type = "incompatible"
+versionRange = "[,3.0.0)"
+reason = "Minisort's controller binding needs Controlify 3.0.0 or newer."
+ordering = "NONE"
+side = "CLIENT"
+
+# Before 6.2.1, Mochila left the open backpack unlocked, so sorting could duplicate items or lose the backpack.
+[[dependencies.${mod_id}]]
+modId = "mochila"
+type = "incompatible"
+versionRange = "[,6.2.1)"
+reason = "Minisort needs Mochila 6.2.1 or newer, which keeps the open backpack safe from sorting."
+ordering = "NONE"
+side = "BOTH"

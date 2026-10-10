@@ -47,9 +47,9 @@ describe("Minisort on a dedicated server", () => {
     await screen.widgets().activate("Deposit matching items");
     await eventually(ctx, "execute unless items entity @s inventory.* minecraft:stone");
     await screen.widgets().activate("Sort container");
-    await eventually(ctx, "execute if items block 0 101 0 container.1 minecraft:stone[count=64]");
-    await ctx.commands.assert("/execute if items block 0 101 0 container.0 minecraft:apple[count=3]");
-    await ctx.commands.assert("/execute if items block 0 101 0 container.2 minecraft:stone[count=16]");
+    await eventually(ctx, "execute if items block 0 101 0 container.0 minecraft:stone[count=64]");
+    await ctx.commands.assert("/execute if items block 0 101 0 container.1 minecraft:stone[count=16]");
+    await ctx.commands.assert("/execute if items block 0 101 0 container.2 minecraft:apple[count=3]");
     await screen.widgets().find("Retrieve matching items").click({ button: 0, modifiers: SHIFT });
     await eventually(ctx, "execute unless items block 0 101 0 container.* *");
     await ctx.commands.assert("/execute if items entity @s inventory.* minecraft:dirt[count=4]");
