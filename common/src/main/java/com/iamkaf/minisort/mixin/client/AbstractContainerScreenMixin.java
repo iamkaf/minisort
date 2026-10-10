@@ -11,7 +11,6 @@ import com.iamkaf.minisort.network.MiniSortNetwork;
 import com.iamkaf.minisort.network.TransferContainerPayload.Action;
 import com.iamkaf.minisort.sort.SortMenuPolicy;
 import com.iamkaf.minisort.sort.SortTarget;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 //? if >=1.21.9 {
@@ -26,7 +25,6 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -292,24 +290,11 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Min
     private void miniSort$add(int x, int y, String glyph, ShiftClickButton.Action action, String translationKey,
                               PlacedButton.Shown shown) {
         Component title = Component.translatable(translationKey);
-        MutableComponent tooltip = Component.empty()
-                .append(title)
-                .append("\n")
-                .append(Component.translatable(translationKey + ".description").withStyle(ChatFormatting.GRAY));
-        if (shown == PlacedButton.Shown.WITHOUT_SHIFT) {
-            tooltip.append("\n").append(Component.translatable("gui.minisort.shift_for_all").withStyle(ChatFormatting.DARK_GRAY));
-        } else if (shown == PlacedButton.Shown.ALWAYS) {
-            // Only the sort buttons show always; name their shortcuts, including the key as the player bound it.
-            Component shortcut = MiniSortClient.SORT_KEY.isUnbound()
-                    ? Component.translatable("gui.minisort.sort_shortcut.mouse")
-                    : Component.translatable("gui.minisort.sort_shortcut", MiniSortClient.SORT_KEY.getTranslatedKeyMessage());
-            tooltip.append("\n").append(shortcut.copy().withStyle(ChatFormatting.DARK_GRAY));
-        }
         // The "everything" twin always does everything: a controller can fake a held Shift for the icons without
         // putting Shift on its click. The plain twin still upgrades when its own click carries Shift.
         ShiftClickButton.Action pressed = shown == PlacedButton.Shown.WITH_SHIFT ? shift -> action.press(true) : action;
-        ShiftClickButton button = new ShiftClickButton(leftPos + x, topPos + y, glyph, pressed, title);
-        button.setTooltip(Tooltip.create(tooltip));
+        ShiftClickButton button = new ShiftClickButton(leftPos + x, topPos + y, glyph, pressed, title,
+                Tooltip.create(title));
         addRenderableWidget(button);
         miniSort$buttons.add(new PlacedButton(button, x, y, shown));
     }
