@@ -1,5 +1,6 @@
 package com.iamkaf.minisort.sort;
 
+import com.iamkaf.amber.api.platform.v1.Platform;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
@@ -25,10 +26,24 @@ public final class SortMenuPolicy {
             "net.minecraftforge.items.SlotItemHandler"
     );
 
+    // Mochila before 6.2.1 left the open backpack's slot unlocked, so sorting the inventory or depositing everything
+    // while a backpack was open could duplicate items or put the backpack inside itself. Fabric and NeoForge refuse
+    // those versions at launch. Forge has no incompatibility metadata, so the server refuses Minisort's actions in
+    // their backpack menus instead; the client only sees a vanilla chest menu there, so its buttons still show.
+    private static final boolean UNSAFE_MOCHILA = ModVersions.olderThan(Platform.getModVersion("mochila"), 6, 2, 1);
+
     private SortMenuPolicy() {
     }
 
+    /** Whether the server must not touch anything while this menu is open, not even the player's inventory. */
+    public static boolean refuses(AbstractContainerMenu menu) {
+        return UNSAFE_MOCHILA && menu.getClass().getName().startsWith("com.iamkaf.mochila.");
+    }
+
     public static boolean supportsStorageActions(AbstractContainerMenu menu) {
+        if (refuses(menu)) {
+            return false;
+        }
         Class<?> menuClass = menu.getClass();
         if (menuClass == ChestMenu.class
                 || menuClass == ShulkerBoxMenu.class

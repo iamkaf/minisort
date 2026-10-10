@@ -45,6 +45,7 @@
     "modmenu": ">=${mod_menu_version}"
   },
   "breaks": {
-    "controlify": "<3.0.0"
+    "controlify": "<3.0.0",
+    "mochila": "<6.2.1"
   }
 }

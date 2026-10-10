@@ -39,7 +39,8 @@ public final class SortService {
         if (!menu.getCarried().isEmpty()) {
             return SortResult.CARRIED_STACK;
         }
-        if (payload.target() == SortTarget.CONTAINER && !SortMenuPolicy.supportsStorageActions(menu)) {
+        if (SortMenuPolicy.refuses(menu)
+                || payload.target() == SortTarget.CONTAINER && !SortMenuPolicy.supportsStorageActions(menu)) {
             return SortResult.UNSUPPORTED_MENU;
         }
 
