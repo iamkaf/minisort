@@ -39,6 +39,3 @@ horizontal-jars version="all":
 pair node timeout="300":
     @modstage clean instance "{{ node }}" --side server > /dev/null 2>&1 || true
     @env -u WAYLAND_DISPLAY SDL_VIDEO_DRIVER=x11 GLFW_PLATFORM=x11 XDG_SESSION_TYPE=x11 xvfb-run -a -s "-screen 0 1920x1080x24" ./teakitw pair --node "{{ node }}" --modstage-config modstage.toml --modstage-instance "{{ node }}" --server-address 127.0.0.1:25592 --test-file test/teakit-pair/dedicated-server.test.ts --timeout "{{ timeout }}"
-
-publish-version version *args:
-    @tasks=(":common:{{ version }}:publishAllPublicationsToKafMavenRepository"); for loader in $(just list-loaders "{{ version }}"); do tasks+=(":$loader:{{ version }}:publishAllPublicationsToKafMavenRepository"); done; ./gradlew --configure-on-demand "${tasks[@]}" {{ args }} --console=plain
